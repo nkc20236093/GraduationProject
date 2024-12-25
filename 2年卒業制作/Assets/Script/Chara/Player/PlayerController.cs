@@ -8,30 +8,14 @@ public class PlayerController : MonoBehaviour
     Janken[] jankens = new Janken[3];
     int select = 0;
 
-    public enum HandType
-    {
-        None,
-        Rock,
-        Paper,
-        Scissors
-    }
 
     public class Janken
     {
-        public HandType hand;
-        public Janken(HandType selecthand)
-        {
-            hand = selecthand;
-        }
         public virtual void HandEffect() { }
     }
 
     public class Rock : Janken
     {
-        public Rock() : base(HandType.Rock)
-        {
-
-        }
         public override void HandEffect()
         {
             Debug.Log("グー");
@@ -40,10 +24,6 @@ public class PlayerController : MonoBehaviour
 
     public class Paper : Janken
     {
-        public Paper() : base(HandType.Paper)
-        {
-
-        }
         public override void HandEffect()
         {
             Debug.Log("パー");
@@ -52,10 +32,6 @@ public class PlayerController : MonoBehaviour
 
     public class Scissors : Janken
     {
-        public Scissors() : base(HandType.Scissors)
-        {
-
-        }
         public override void HandEffect()
         {
             Debug.Log("チョキ");
