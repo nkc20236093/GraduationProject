@@ -246,6 +246,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bffcac4cbb2034297614a6b89cf105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioSource: {fileID: 970030857}
   Fingers:
   - {fileID: 202149991}
   - {fileID: 1193255307}
@@ -640,7 +641,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: d150445875910ce489a967fd087984de, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.5
   m_Pitch: 1
@@ -1010,10 +1011,6 @@ PrefabInstance:
     - target: {fileID: 6337869905836683396, guid: 17c72ca8a6acfd34383d7182fe6ae450, type: 3}
       propertyPath: m_Name
       value: monster
-      objectReference: {fileID: 0}
-    - target: {fileID: 6337869905836683396, guid: 17c72ca8a6acfd34383d7182fe6ae450, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6683187593413716542, guid: 17c72ca8a6acfd34383d7182fe6ae450, type: 3}
       propertyPath: m_LocalPosition.x

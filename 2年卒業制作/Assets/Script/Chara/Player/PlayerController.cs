@@ -7,7 +7,7 @@ public class PlayerController : MonoBehaviour
     Rigidbody rigid;
     Janken[] jankens = new Janken[3];
     int select = 0;
-    AudioSource audioSource;
+    [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject[] Fingers;
     LineRenderer[] lineRenderers = new LineRenderer[2];
 
@@ -26,9 +26,18 @@ public class PlayerController : MonoBehaviour
             lineRenderers[1].enabled = false;
 
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J))
+            if (Input.GetKeyDown(KeyCode.J))
             {
-
+                audio.Play();
+                Collider[] hitColliders = Physics.OverlapSphere(transform.position, 100f);
+                foreach (Collider col in hitColliders)
+                {
+                    if (col.CompareTag("Enemy"))
+                    {
+                        float distance = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(col.transform.position.x, 0, col.transform.position.z));
+                        col.gameObject.GetComponent<EnemyCon>().Induction(transform.position, distance);
+                    }
+                }
             }
         }
     }
@@ -103,7 +112,6 @@ public class PlayerController : MonoBehaviour
     {
         Camera.main.transform.localEulerAngles = Vector3.zero;
         rigid = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
         jankens[0] = new Rock();
         jankens[1] = new Scissors();
         jankens[2] = new Paper();
@@ -147,6 +155,9 @@ public class PlayerController : MonoBehaviour
             direction.x -= Input.GetAxis("Mouse Y") * 2.0f;
             direction.y += Input.GetAxis("Mouse X") * 2.0f;
 
+            // 修正前のY軸の動きを保存
+            float CameraY = direction.y;
+
             if (direction.x > 180)
             {
                 direction.x -= 360;
@@ -157,10 +168,7 @@ public class PlayerController : MonoBehaviour
             Camera.main.transform.localEulerAngles = direction;
 
             // プレイヤーの向きをカメラの向きに合わせる
-            Vector3 PlayerRotation = transform.eulerAngles;
-            PlayerRotation.y = Input.GetAxis("Mouse X");
-            transform.eulerAngles = new Vector3(0, PlayerRotation.y, 0);
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionY), 3f * Time.deltaTime);
+            transform.eulerAngles = new Vector3(0, CameraY, 0);
         }
     }
 }

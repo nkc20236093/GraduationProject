@@ -5,6 +5,7 @@ using UnityEngine.AI;
 
 public class EnemyCon : MonoBehaviour
 {
+    [SerializeField] float outline = 1f;
     [SerializeField] Transform Player;
     [SerializeField] Vector3[] point;
     [Header("0=ダブルヘッド")] [SerializeField] int EnemyNumber;
@@ -34,6 +35,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(NavMeshAgent agent, Vector3 targetpos, Transform mytrans)
         {
+            if (searchHit) return;
             Vector3 directionToPlayer = targetpos - mytrans.position;
             float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
             if (angleToPlayer <= 90f / 2f)
@@ -53,6 +55,7 @@ public class EnemyCon : MonoBehaviour
             {
                 NextPoint();
             }
+            
             void NextPoint()
             {
                 if (Patrolpoint.Length == 0 && searchHit) return;
@@ -165,5 +168,11 @@ public class EnemyCon : MonoBehaviour
         {
             enemies[0].Attack();
         }
+    }
+    public void Induction(Vector3 pos, float distance)
+    {
+        if (distance < outline) return;
+        Debug.Log(0);
+        enemies[EnemyNumber].Chase(pos, agent);
     }
 }
