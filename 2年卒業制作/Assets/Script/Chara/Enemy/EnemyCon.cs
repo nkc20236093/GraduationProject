@@ -6,9 +6,9 @@ using UnityEngine.AI;
 public class EnemyCon : MonoBehaviour
 {
     [SerializeField] float outline = 1f;
-    [SerializeField] Transform Player;
+    Transform Player;
     [SerializeField] Vector3[] point;
-    [Header("0=ダブルヘッド")] [SerializeField] int EnemyNumber;
+    [Header("0 = ダブルヘッド \n1 = 医者\n2 = アイアンボックス\n3 = ノーマル敵")] [SerializeField] int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
 
@@ -20,7 +20,7 @@ public class EnemyCon : MonoBehaviour
         public bool GetBool() { return searchHit; }
         public virtual void SetPoint(Vector3[] transforms) { }
         public virtual void Search(NavMeshAgent agent, Vector3 targetpos, Transform mytrans) { }
-        public virtual void Chase(Vector3 target, NavMeshAgent agent) { }
+        public virtual void Chase(Vector3 target, NavMeshAgent agent, float chaseTimer) { }
         public virtual void Attack() { }
     }
 
@@ -36,26 +36,37 @@ public class EnemyCon : MonoBehaviour
         public override void Search(NavMeshAgent agent, Vector3 targetpos, Transform mytrans)
         {
             if (searchHit) return;
+            RaycastHit hit;
             Vector3 directionToPlayer = targetpos - mytrans.position;
-            float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
-            if (angleToPlayer <= 90f / 2f)
-            {           
-                float distanceToPlayer = directionToPlayer.magnitude;
-                if (distanceToPlayer <= 10f)
+            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            {
+                if (hit.collider.CompareTag("Player"))
                 {
-                    Debug.Log("発見");
-                    searchHit = true;
+                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    if (angleToPlayer <= 90f / 2f)
+                    {
+                        float distanceToPlayer = directionToPlayer.magnitude;
+                        if (distanceToPlayer <= 10f)
+                        {
+                            Debug.Log("発見");
+                            searchHit = true;
+                        }
+                        else
+                        {
+                            NextPoint();
+                        }
+                    }
+                    else
+                    {
+                        NextPoint();
+                    }
                 }
                 else
                 {
                     NextPoint();
                 }
             }
-            else
-            {
-                NextPoint();
-            }
-            
+
             void NextPoint()
             {
                 if (Patrolpoint.Length == 0 && searchHit) return;
@@ -73,44 +84,159 @@ public class EnemyCon : MonoBehaviour
         {
             Debug.Log("PlayerHit");
         }
-        public override void Chase(Vector3 target, NavMeshAgent agent)
+        public override void Chase(Vector3 target, NavMeshAgent agent, float chaseTimer)
         {
-            Debug.Log("追跡");
-            agent.SetDestination(target);
+            while (chaseTimer < 5.0f)
+            {
+                Debug.Log("追跡");
+                agent.SetDestination(target);
+                chaseTimer += Time.deltaTime;
+                if (chaseTimer >= 5.0f) break;
+            }
         }
     }
 
     public class PlagueDoctor : Enemy
     {
+        public override void SetPoint(Vector3[] transforms)
+        {
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                Patrolpoint[i] = transforms[i];
+            }
+        }
         public override void Search(NavMeshAgent agent, Vector3 targetpos, Transform mytrans)
         {
+            if (searchHit) return;
+            RaycastHit hit;
+            Vector3 directionToPlayer = targetpos - mytrans.position;
+            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    if (angleToPlayer <= 90f / 2f)
+                    {
+                        float distanceToPlayer = directionToPlayer.magnitude;
+                        if (distanceToPlayer <= 10f)
+                        {
+                            Debug.Log("発見");
+                            searchHit = true;
+                        }
+                        else
+                        {
+                            NextPoint();
+                        }
+                    }
+                    else
+                    {
+                        NextPoint();
+                    }
+                }
+                else
+                {
+                    NextPoint();
+                }
+            }
 
+            void NextPoint()
+            {
+                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (!agent.pathPending && agent.remainingDistance < 0.1f)
+                {
+                    Debug.Log("探索");
+                    searchHit = false;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
+                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                }
+            }
         }
 
         public override void Attack()
         {
             Debug.Log("PlayerHit");
         }
-        public override void Chase(Vector3 target, NavMeshAgent agent)
+        public override void Chase(Vector3 target, NavMeshAgent agent, float chaseTimer)
         {
-            Debug.Log("追跡");
+            while (chaseTimer < 5.0f)
+            {
+                Debug.Log("追跡");
+                agent.SetDestination(target);
+                chaseTimer += Time.deltaTime;
+                if (chaseTimer >= 5.0f) break;
+            }
         }
     }
 
     public class IronBox : Enemy
     {
+        public override void SetPoint(Vector3[] transforms)
+        {
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                Patrolpoint[i] = transforms[i];
+            }
+        }
         public override void Search(NavMeshAgent agent, Vector3 targetpos, Transform mytrans)
         {
+            if (searchHit) return;
+            RaycastHit hit;
+            Vector3 directionToPlayer = targetpos - mytrans.position;
+            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    if (angleToPlayer <= 90f / 2f)
+                    {
+                        float distanceToPlayer = directionToPlayer.magnitude;
+                        if (distanceToPlayer <= 10f)
+                        {
+                            Debug.Log("発見");
+                            searchHit = true;
+                        }
+                        else
+                        {
+                            NextPoint();
+                        }
+                    }
+                    else
+                    {
+                        NextPoint();
+                    }
+                }
+                else
+                {
+                    NextPoint();
+                }
+            }
 
+            void NextPoint()
+            {
+                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (!agent.pathPending && agent.remainingDistance < 0.1f)
+                {
+                    Debug.Log("探索");
+                    searchHit = false;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
+                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                }
+            }
         }
 
         public override void Attack()
         {
             Debug.Log("PlayerHit");
         }
-        public override void Chase(Vector3 target, NavMeshAgent agent)
+        public override void Chase(Vector3 target, NavMeshAgent agent, float chaseTimer)
         {
-            Debug.Log("追跡");
+            while (chaseTimer < 5.0f)
+            {
+                Debug.Log("追跡");
+                agent.SetDestination(target);
+                chaseTimer += Time.deltaTime;
+                if (chaseTimer >= 5.0f) break;
+            }
         }
     }
 
@@ -125,7 +251,7 @@ public class EnemyCon : MonoBehaviour
         {
             Debug.Log("PlayerHit");
         }
-        public override void Chase(Vector3 target, NavMeshAgent agent)
+        public override void Chase(Vector3 target, NavMeshAgent agent, float chaseTimer)
         {
             Debug.Log("追跡");
         }
@@ -141,6 +267,7 @@ public class EnemyCon : MonoBehaviour
         enemies[2] = new IronBox();
         enemies[3] = new NormalEnemy();
         enemies[EnemyNumber].SetPoint(point);
+        Player = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
     // Update is called once per frame
@@ -148,7 +275,7 @@ public class EnemyCon : MonoBehaviour
     {
         if (enemies[EnemyNumber].GetBool())
         {
-            enemies[EnemyNumber].Chase(Player.position, agent);
+            enemies[EnemyNumber].Chase(Player.position, agent, 0);
         }
         else
         {
@@ -173,6 +300,6 @@ public class EnemyCon : MonoBehaviour
     {
         if (distance < outline) return;
         Debug.Log(0);
-        enemies[EnemyNumber].Chase(pos, agent);
+        enemies[EnemyNumber].Chase(pos, agent, 0);
     }
 }
