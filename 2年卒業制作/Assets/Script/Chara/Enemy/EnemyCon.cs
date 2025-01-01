@@ -11,7 +11,7 @@ public class EnemyCon : MonoBehaviour
     [Header("0 = ダブルヘッド \n1 = 医者\n2 = アイアンボックス\n3 = ノーマル敵")] public int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
-
+    GameObject Flask;
     public class Enemy
     {
         protected float chaseTimer = 0;
@@ -108,9 +108,13 @@ public class EnemyCon : MonoBehaviour
 
     public class PlagueDoctor : Enemy
     {
-        public PlagueDoctor(NavMeshAgent navi)
+        GameObject flask;
+        Transform transform;
+        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform trans)
         {
             agent = navi;
+            flask = Flask;
+            transform = trans;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -176,6 +180,16 @@ public class EnemyCon : MonoBehaviour
             {
                 Debug.Log("追跡");
                 agent.SetDestination(target);
+                if (Mathf.Approximately(chaseTimer % 1.0f, 0f))
+                {
+                    Debug.Log("投擲");
+                    Vector3 pos = transform.position;
+                    pos.y += 0.5f;
+                    GameObject instance = Instantiate(flask, pos, Quaternion.identity);
+                    instance.SetActive(true);
+                    Vector3 throwVec = (target - transform.position).normalized;
+                    instance.GetComponent<Rigidbody>().AddForce(throwVec * 15, ForceMode.Impulse);
+                }
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
                 {
@@ -280,14 +294,8 @@ public class EnemyCon : MonoBehaviour
                     if (distance <= 10 && obj != gameObject) 
                     {
                         obj.GetComponent<EnemyCon>().enemies[obj.GetComponent<EnemyCon>().EnemyNumber].Chase(playerPos);
-                        //EnemyCon[] enemyCons = obj.GetComponents<EnemyCon>();
-                        //ene.AddRange(enemyCons);
                     }
                 }
-                //foreach (EnemyCon enemyCon in ene)
-                //{
-                //    enemyCon.enemies[enemyCon.EnemyNumber].Chase(playerPos);
-                //}
             }
         }
     }
@@ -318,8 +326,12 @@ public class EnemyCon : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        if (EnemyNumber == 1)
+        {
+            Flask = transform.GetChild(0).GetChild(0).gameObject;
+        }
         enemies[0] = new DoubleHead(agent);
-        enemies[1] = new PlagueDoctor(agent);
+        enemies[1] = new PlagueDoctor(agent, Flask, transform);
         enemies[2] = new IronBox(agent, gameObject);
         enemies[3] = new NormalEnemy(agent);
         enemies[EnemyNumber].SetPoint(point);

@@ -35,10 +35,7 @@ public class PlayerController : MonoBehaviour
                     if (col.CompareTag("Enemy"))
                     {
                         float distance = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(col.transform.position.x, 0, col.transform.position.z));
-                        if (col.gameObject.GetComponent<EnemyCon>().EnemyNumber == 2)
-                        {
-                            col.gameObject.GetComponent<EnemyCon>().Induction(transform.position, distance);
-                        }
+                        col.gameObject.GetComponent<EnemyCon>().Induction(transform.position, distance);
                     }
                 }
             }
