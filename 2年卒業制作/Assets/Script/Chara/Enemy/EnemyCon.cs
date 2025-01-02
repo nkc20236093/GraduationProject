@@ -24,6 +24,7 @@ public class EnemyCon : MonoBehaviour
         public virtual void Search(Vector3 targetpos, Transform mytrans) { }
         public virtual void Chase(Vector3 target) { }
         public virtual void Attack() { }
+        protected virtual void Animation() { }
     }
 
     public class DoubleHead : Enemy
@@ -306,9 +307,58 @@ public class EnemyCon : MonoBehaviour
         {
             agent = navi;
         }
+        public override void SetPoint(Vector3[] transforms)
+        {
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                Patrolpoint[i] = transforms[i];
+            }
+        }
         public override void Search(Vector3 targetpos, Transform mytrans)
         {
+            if (searchHit) return;
+            RaycastHit hit;
+            Vector3 directionToPlayer = targetpos - mytrans.position;
+            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    if (angleToPlayer <= 90f / 2f)
+                    {
+                        float distanceToPlayer = directionToPlayer.magnitude;
+                        if (distanceToPlayer <= 10f)
+                        {
+                            Debug.Log("”­Œ©");
+                            searchHit = true;
+                        }
+                        else
+                        {
+                            NextPoint();
+                        }
+                    }
+                    else
+                    {
+                        NextPoint();
+                    }
+                }
+                else
+                {
+                    NextPoint();
+                }
+            }
 
+            void NextPoint()
+            {
+                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (!agent.pathPending && agent.remainingDistance < 0.1f)
+                {
+                    Debug.Log("’Tõ");
+                    searchHit = false;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
+                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                }
+            }
         }
 
         public override void Attack()
@@ -317,7 +367,17 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Chase(Vector3 target)
         {
-            Debug.Log("’ÇÕ");
+            while (chaseTimer < 5.0f)
+            {
+                Debug.Log("’ÇÕ");
+                agent.SetDestination(target);
+                chaseTimer += Time.deltaTime;
+                if (chaseTimer >= 5.0f)
+                {
+                    chaseTimer = 0;
+                    break;
+                }
+            }
         }
     }
 
