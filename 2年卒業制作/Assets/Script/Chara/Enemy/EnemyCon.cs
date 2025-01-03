@@ -11,10 +11,13 @@ public class EnemyCon : MonoBehaviour
     [Header("0 = É_ÉuÉãÉwÉbÉh \n1 = à„é“\n2 = ÉAÉCÉAÉìÉ{ÉbÉNÉX\n3 = ÉmÅ[É}ÉãìG")] public int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
+    [SerializeField] Animator animator;
     GameObject Flask;
     public class Enemy
     {
         protected float chaseTimer = 0;
+        protected bool goalpoint = false;
+        protected float stopTimer = 0;
         protected bool searchHit = false;
         protected int NowPoint = 0;
         protected NavMeshAgent agent;
@@ -24,13 +27,16 @@ public class EnemyCon : MonoBehaviour
         public virtual void Search(Vector3 targetpos, Transform mytrans) { }
         public virtual void Chase(Vector3 target) { }
         public virtual void Attack() { }
-        protected virtual void Animation() { }
+        public virtual void Animation(Animator animator) { }
     }
 
     public class DoubleHead : Enemy
     {
-        public DoubleHead(NavMeshAgent navi)
+        bool movingUp = true;
+        Transform chilltrans; 
+        public DoubleHead(NavMeshAgent navi, Transform trans)
         {
+            chilltrans = trans;
             agent = navi;
         }
         public override void SetPoint(Vector3[] transforms)
@@ -42,7 +48,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(Vector3 targetpos, Transform mytrans)
         {
-            if (searchHit) return;
+            if (!searchHit) return;
             RaycastHit hit;
             Vector3 directionToPlayer = targetpos - mytrans.position;
             if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
@@ -81,8 +87,20 @@ public class EnemyCon : MonoBehaviour
                 {
                     Debug.Log("íTçı");
                     searchHit = false;
-                    agent.SetDestination(Patrolpoint[NowPoint]);
-                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                    stopTimer += Time.deltaTime;
+                    if (stopTimer < 2.5f)
+                    {
+                        agent.isStopped = true;
+                        goalpoint = true;
+                    }
+                    else
+                    {
+                        goalpoint = false;
+                        agent.isStopped = false;
+                        agent.SetDestination(Patrolpoint[NowPoint]);
+                        NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                        stopTimer = 0;
+                    }
                 }
             }
         }
@@ -103,6 +121,16 @@ public class EnemyCon : MonoBehaviour
                     chaseTimer = 0;
                     break;
                 }
+            }
+        }
+        public override void Animation(Animator animator)
+        {
+            float targetY = movingUp ? 2.0f : 1.25f;
+            Vector3 targetPosition = chilltrans.parent.TransformPoint(new Vector3(0, targetY, 0));
+            chilltrans.position = Vector3.MoveTowards(chilltrans.position, targetPosition, 0.5f * Time.deltaTime);
+            if ((chilltrans.position - targetPosition).sqrMagnitude < 0.001f)
+            {
+                movingUp = !movingUp;
             }
         }
     }
@@ -165,8 +193,20 @@ public class EnemyCon : MonoBehaviour
                 {
                     Debug.Log("íTçı");
                     searchHit = false;
-                    agent.SetDestination(Patrolpoint[NowPoint]);
-                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                    stopTimer += Time.deltaTime;
+                    if (stopTimer < 2.5f)
+                    {
+                        agent.isStopped = true;
+                        goalpoint = true;
+                    }
+                    else
+                    {
+                        goalpoint = false;
+                        agent.isStopped = false;
+                        agent.SetDestination(Patrolpoint[NowPoint]);
+                        NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                        stopTimer = 0;
+                    }
                 }
             }
         }
@@ -196,6 +236,26 @@ public class EnemyCon : MonoBehaviour
                 {
                     chaseTimer = 0;
                     break;
+                }
+            }
+        }
+        public override void Animation(Animator animator)
+        {
+            if (goalpoint)
+            {
+                animator.SetBool("Move", false);
+                animator.SetBool("Run", false);
+            }
+            else
+            {
+                animator.SetBool("Move", true);
+                if (searchHit)
+                {
+                    animator.SetBool("Run", true);
+                }
+                else
+                {
+                    animator.SetBool("Run", false);
                 }
             }
         }
@@ -259,8 +319,20 @@ public class EnemyCon : MonoBehaviour
                 {
                     Debug.Log("íTçı");
                     searchHit = false;
-                    agent.SetDestination(Patrolpoint[NowPoint]);
-                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                    stopTimer += Time.deltaTime;
+                    if (stopTimer < 2.5f)
+                    {
+                        agent.isStopped = true;
+                        goalpoint = true;
+                    }
+                    else
+                    {
+                        goalpoint = false;
+                        agent.isStopped = false;
+                        agent.SetDestination(Patrolpoint[NowPoint]);
+                        NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                        stopTimer = 0;
+                    }
                 }
             }
         }
@@ -296,6 +368,26 @@ public class EnemyCon : MonoBehaviour
                     {
                         obj.GetComponent<EnemyCon>().enemies[obj.GetComponent<EnemyCon>().EnemyNumber].Chase(playerPos);
                     }
+                }
+            }
+        }
+        public override void Animation(Animator animator)
+        {
+            if (goalpoint)
+            {
+                animator.SetBool("Move", false);
+                animator.SetBool("Run", false);
+            }
+            else
+            {
+                animator.SetBool("Move", true);
+                if (searchHit)
+                {
+                    animator.SetBool("Run", true);
+                }
+                else
+                {
+                    animator.SetBool("Run", false);
                 }
             }
         }
@@ -355,8 +447,20 @@ public class EnemyCon : MonoBehaviour
                 {
                     Debug.Log("íTçı");
                     searchHit = false;
-                    agent.SetDestination(Patrolpoint[NowPoint]);
-                    NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                    stopTimer += Time.deltaTime;
+                    if (stopTimer < 2.5f)
+                    {
+                        agent.isStopped = true;
+                        goalpoint = true;
+                    }
+                    else
+                    {
+                        goalpoint = false;
+                        agent.isStopped = false;
+                        agent.SetDestination(Patrolpoint[NowPoint]);
+                        NowPoint = (NowPoint + 1) % Patrolpoint.Length;
+                        stopTimer = 0;
+                    }
                 }
             }
         }
@@ -379,6 +483,26 @@ public class EnemyCon : MonoBehaviour
                 }
             }
         }
+        public override void Animation(Animator animator)
+        {
+            if (goalpoint) 
+            {
+                animator.SetBool("Move", false);
+                animator.SetBool("Run", false);
+            }
+            else
+            {
+                animator.SetBool("Move", true);
+                if (searchHit)
+                {
+                    animator.SetBool("Run", true);
+                }
+                else
+                {
+                    animator.SetBool("Run", false);
+                }
+            }
+        }
     }
 
 
@@ -390,7 +514,7 @@ public class EnemyCon : MonoBehaviour
         {
             Flask = transform.GetChild(0).GetChild(0).gameObject;
         }
-        enemies[0] = new DoubleHead(agent);
+        enemies[0] = new DoubleHead(agent, transform.GetChild(0));
         enemies[1] = new PlagueDoctor(agent, Flask, transform);
         enemies[2] = new IronBox(agent, gameObject);
         enemies[3] = new NormalEnemy(agent);
@@ -409,6 +533,7 @@ public class EnemyCon : MonoBehaviour
         {
             enemies[EnemyNumber].Search(Player.position, transform);
         }
+        enemies[EnemyNumber].Animation(animator);
     }
     private void OnCollisionEnter(Collision collision)
     {

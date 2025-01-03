@@ -67,6 +67,7 @@ public class PlayerController : MonoBehaviour
 
     public class Scissors : Janken
     {
+        bool[] LightHit = new bool[2] { false, false };
         public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject[] Fingers, LineRenderer[] lineRenderers)
         {
             Debug.Log("チョキ");
@@ -92,10 +93,19 @@ public class PlayerController : MonoBehaviour
 
                         if (hit.collider.gameObject.CompareTag("LightGimmick"))
                         {
+                            LightHit[i] = true;
+                            if (LightHit[0] && LightHit[1])
+                            {
+                                // 二つともヒットしたら作動
+                                //hit.collider.gameObject.GetComponent<>
+                            }
                             Debug.Log("ヒット");
                         }
+                        else
+                        {
+                            LightHit[i] = false;
+                        }
                     }
-
                     Debug.DrawRay(ray.origin, ray.direction, Color.red, 0.1f);
                 }
             }
