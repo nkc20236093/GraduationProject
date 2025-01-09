@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LightGimmick : MonoBehaviour
+public class GimmickCon : MonoBehaviour
 {
-    originGimmick[] originGimmicks;
+    originGimmick[] originGimmicks = new originGimmick[1];
     [SerializeField] int gimickNumber;
     public class originGimmick
     {
@@ -24,6 +24,21 @@ public class LightGimmick : MonoBehaviour
         public override void Operation()
         {
             Debug.Log("ライトヒット!");
+        }
+    }
+    public class Gimmick02 : originGimmick
+    {
+        RaycastHit hit;
+        LineRenderer lineRenderer;
+        public Gimmick02(int setNumber, RaycastHit hit, LineRenderer lineRenderer) : base(setNumber)
+        {
+            myNumber = setNumber;
+            this.hit = hit;
+            this.lineRenderer = lineRenderer;
+        }
+        public override void Operation()
+        {
+
         }
     }
 

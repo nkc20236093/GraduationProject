@@ -58,7 +58,7 @@ public class PlayerController : MonoBehaviour
             {
                 float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
                 Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-                rigid.AddForce(moveDir * 5f);
+                rigid.AddForce(moveDir * 10f);
             }
         }
     }
@@ -72,17 +72,14 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("チョキ");
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J)) 
+            if (!Input.GetKey(KeyCode.J)) 
             {
                 lineRenderer.enabled = true;
-                Vector3 direction = Finger.transform.InverseTransformDirection(Camera.main.transform.forward); // Fingerのローカル座標系に変換
-                Ray ray = new Ray(Finger.transform.position, direction);
-                //Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
+                Ray ray = new Ray(Finger.transform.position, transform.forward);
+                Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
 
-                lineRenderer.SetPosition(1, Finger.transform.InverseTransformPoint(Finger.transform.position + direction * lazerDistance)); // Fingerのローカル座標系で設定                
                 if (Physics.Raycast(ray, out hit, lazerDistance))
                 {
-                    Debug.Log("ヒット");
                     float distance = Vector3.Distance(Finger.transform.position, hit.point);
                     lazerDistance = distance;
                     if (hit.collider.gameObject.CompareTag("LightGimmick") && Mathf.Approximately(distance, lazerDistance))
@@ -91,19 +88,22 @@ public class PlayerController : MonoBehaviour
                         if (LightHit)
                         {
                             // ヒットしたら作動
-                            hit.collider.gameObject.GetComponent<LightGimmick>().LightHit();
+                            hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
                         }
-                        Debug.Log("ヒット");
                     }
                     else
                     {
-                        lazerDistance = 10.0f;
                         LightHit = false;
                     }
+                }
+                else
+                {
+                    lazerDistance = 10.0f;
                 }
             }
             else
             {
+                lazerDistance = 10.0f;
                 lineRenderer.enabled = false;
             }
         }
@@ -148,16 +148,14 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.K))
         {
+            transform.localEulerAngles = Vector3.zero;
             Camera.main.transform.localEulerAngles = Vector3.zero;
         }
         else
         {
-            Vector3 direction = Camera.main.transform.localEulerAngles;
-            direction.x -= Input.GetAxis("Mouse Y") * 2.0f;
+            Vector3 direction = new Vector3(transform.GetChild(0).transform.eulerAngles.x, transform.eulerAngles.y, 0);
+            direction.x += Input.GetAxis("Mouse Y") * 2.0f;
             direction.y += Input.GetAxis("Mouse X") * 2.0f;
-
-            // 修正前のY軸の動きを保存
-            float CameraY = direction.y;
 
             if (direction.x > 180)
             {
@@ -166,10 +164,8 @@ public class PlayerController : MonoBehaviour
 
             direction.x = Mathf.Clamp(direction.x, -15, 45);
             direction.z = 0;
-            Camera.main.transform.localEulerAngles = direction;
-
-            // プレイヤーの向きをカメラの向きに合わせる
-            transform.eulerAngles = new Vector3(0, CameraY, 0);
+            transform.eulerAngles = new Vector3(0, direction.y, 0);
+            transform.GetChild(0).eulerAngles = new Vector3(direction.x, 0, 0);
         }
     }
 }
