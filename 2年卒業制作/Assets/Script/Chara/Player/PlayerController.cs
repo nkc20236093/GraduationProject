@@ -70,7 +70,6 @@ public class PlayerController : MonoBehaviour
     {
         RaycastHit hit;
         float lazerDistance = 10f;
-        bool LightHit = false;
         public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
         {
             Debug.Log("チョキ");
@@ -78,11 +77,12 @@ public class PlayerController : MonoBehaviour
             if (!Input.GetKey(KeyCode.J)) 
             {
                 lineRenderer.enabled = true;
-                Vector3 pos = Finger.transform.position;
-                Vector3 direction = Camera.main.transform.forward;
+                Vector3 startPos = lineRenderer.GetPosition(0);
+                Vector3 endPos = Camera.main.transform.forward * lazerDistance;
+                Vector3 direction = endPos - startPos;
 
-                Ray ray = new Ray(pos, direction);
-                lineRenderer.SetPosition(0, pos);
+                Ray ray = new Ray(startPos, direction * lazerDistance);
+                lineRenderer.SetPosition(0, startPos);
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
 
                 if (Physics.Raycast(ray, out hit, lazerDistance))
@@ -90,30 +90,19 @@ public class PlayerController : MonoBehaviour
                     if (!hit.collider.gameObject.CompareTag("Player"))
                     {
                         lineRenderer.SetPosition(1, hit.point);
-                        float distance = Vector3.Distance(pos, hit.point);
-                        lazerDistance = distance;
-
-                        if (hit.collider.gameObject.CompareTag("LightGimmick") && Mathf.Approximately(distance, lazerDistance))
+                        lazerDistance = Vector3.Distance(startPos, hit.point);
+                        if (hit.collider.gameObject.CompareTag("LightGimmick"))
                         {
-                            Debug.Log("何かにヒット");
-                            LightHit = true;
-                            if (LightHit)
-                            {
-                                Debug.Log("対象にヒット");
-                                // ヒットしたら作動
-                                hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
-                            }
-                        }
-                        else
-                        {
-                            LightHit = false;
+                            Debug.Log("対象にヒット");
+                            // ヒットしたら作動
+                            hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
                         }
                     }
                 }
                 else
                 {
                     lazerDistance = 10.0f;
-                    lineRenderer.SetPosition(1, pos + direction * lazerDistance);
+                    lineRenderer.SetPosition(1, endPos);
                 }
             }
             else
