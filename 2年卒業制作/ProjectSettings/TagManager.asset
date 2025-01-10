@@ -7,6 +7,7 @@ TagManager:
   - LightGimmick
   - Enemy
   - Graund
+  - Pillar
   layers:
   - Default
   - TransparentFX

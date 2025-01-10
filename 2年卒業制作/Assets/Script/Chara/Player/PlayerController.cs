@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class PlayerController : MonoBehaviour
     int select = 0;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
+    [SerializeField] CinemachineVirtualCamera virtualCamera;
+    CinemachinePOV mPov;
     LineRenderer lineRenderer;
 
     public class Janken
@@ -75,30 +78,42 @@ public class PlayerController : MonoBehaviour
             if (!Input.GetKey(KeyCode.J)) 
             {
                 lineRenderer.enabled = true;
-                Ray ray = new Ray(Finger.transform.position, transform.forward);
+                Vector3 pos = Finger.transform.position;
+                Vector3 direction = Camera.main.transform.forward;
+
+                Ray ray = new Ray(pos, direction);
+                lineRenderer.SetPosition(0, pos);
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
 
                 if (Physics.Raycast(ray, out hit, lazerDistance))
                 {
-                    float distance = Vector3.Distance(Finger.transform.position, hit.point);
-                    lazerDistance = distance;
-                    if (hit.collider.gameObject.CompareTag("LightGimmick") && Mathf.Approximately(distance, lazerDistance))
+                    if (!hit.collider.gameObject.CompareTag("Player"))
                     {
-                        LightHit = true;
-                        if (LightHit)
+                        lineRenderer.SetPosition(1, hit.point);
+                        float distance = Vector3.Distance(pos, hit.point);
+                        lazerDistance = distance;
+
+                        if (hit.collider.gameObject.CompareTag("LightGimmick") && Mathf.Approximately(distance, lazerDistance))
                         {
-                            // ヒットしたら作動
-                            hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
+                            Debug.Log("何かにヒット");
+                            LightHit = true;
+                            if (LightHit)
+                            {
+                                Debug.Log("対象にヒット");
+                                // ヒットしたら作動
+                                hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
+                            }
                         }
-                    }
-                    else
-                    {
-                        LightHit = false;
+                        else
+                        {
+                            LightHit = false;
+                        }
                     }
                 }
                 else
                 {
                     lazerDistance = 10.0f;
+                    lineRenderer.SetPosition(1, pos + direction * lazerDistance);
                 }
             }
             else
@@ -112,7 +127,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Camera.main.transform.localEulerAngles = Vector3.zero;
+        mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
         jankens[0] = new Rock();
         jankens[1] = new Scissors();
@@ -148,24 +163,22 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.K))
         {
-            transform.localEulerAngles = Vector3.zero;
-            Camera.main.transform.localEulerAngles = Vector3.zero;
+            transform.eulerAngles = Vector3.zero;
+            mPov.m_VerticalAxis.Value = 0;
+            mPov.m_HorizontalAxis.Value = 0;
         }
         else
         {
-            Vector3 direction = new Vector3(transform.GetChild(0).transform.eulerAngles.x, transform.eulerAngles.y, 0);
-            direction.x += Input.GetAxis("Mouse Y") * 2.0f;
+            Vector3 direction = new Vector3(0, transform.eulerAngles.y, 0);
             direction.y += Input.GetAxis("Mouse X") * 2.0f;
 
-            if (direction.x > 180)
+            if (direction.y > 180)
             {
-                direction.x -= 360;
+                direction.y -= 360;
             }
-
-            direction.x = Mathf.Clamp(direction.x, -15, 45);
             direction.z = 0;
             transform.eulerAngles = new Vector3(0, direction.y, 0);
-            transform.GetChild(0).eulerAngles = new Vector3(direction.x, 0, 0);
+            mPov.m_HorizontalAxis.Value = direction.y;
         }
     }
 }
