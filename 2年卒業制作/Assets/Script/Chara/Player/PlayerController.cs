@@ -75,7 +75,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("チョキ");
             // じゃんけん発動キーがjだと仮定して
-            if (!Input.GetKey(KeyCode.J)) 
+            if (Input.GetKey(KeyCode.J)) 
             {
                 lineRenderer.enabled = true;
                 Vector3 pos = Finger.transform.position;

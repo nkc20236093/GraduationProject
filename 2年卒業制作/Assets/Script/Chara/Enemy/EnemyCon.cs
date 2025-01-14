@@ -8,7 +8,9 @@ public class EnemyCon : MonoBehaviour
     [SerializeField] float outline = 1f;
     Transform Player;
     [SerializeField] Vector3[] point;
-    [Header("0 = ダブルヘッド \n1 = 医者\n2 = アイアンボックス\n3 = ノーマル敵")] public int EnemyNumber;
+    [Header("敵の番号\n0 = ダブルヘッド \n1 = 医者" +
+        "\n2 = アイアンボックス\n3 = ノーマル敵")]
+    public int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
     [SerializeField] Animator animator;
