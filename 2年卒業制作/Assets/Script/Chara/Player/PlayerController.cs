@@ -5,14 +5,17 @@ using Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
-    Rigidbody rigid;
     Janken[] jankens = new Janken[3];
     int select = 0;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     CinemachinePOV mPov;
+
     LineRenderer lineRenderer;
+    Rigidbody rigid;
+
+    public static bool stop = false;
 
     public class Janken
     {
@@ -68,13 +71,21 @@ public class PlayerController : MonoBehaviour
 
     public class Scissors : Janken
     {
+        GimmickCon gimmickCon = null;
         RaycastHit hit;
         float lazerDistance = 10f;
         public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
         {
             Debug.Log("チョキ");
+            if (stop)
+            {
+                Debug.Log("呼び出し");
+                gimmickCon.LightHit();
+                lineRenderer.enabled = false;
+                return;
+            }
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J)) 
+            if (Input.GetKey(KeyCode.J))   
             {
                 lineRenderer.enabled = true;
                 Vector3 startPos = lineRenderer.GetPosition(0);
@@ -95,7 +106,8 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log("対象にヒット");
                             // ヒットしたら作動
-                            hit.collider.gameObject.GetComponent<GimmickCon>().LightHit();
+                            stop = true;
+                            gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
                         }
                     }
                 }
@@ -150,6 +162,20 @@ public class PlayerController : MonoBehaviour
 
     void CameraCon()
     {
+        if (stop)
+        {
+            mPov.m_HorizontalAxis.m_InputAxisName = "";
+            mPov.m_HorizontalAxis.m_InputAxisValue = 0;
+            mPov.m_VerticalAxis.m_InputAxisName = "";
+            mPov.m_VerticalAxis.m_InputAxisValue = 0;
+            return;
+        }
+        else
+        {
+            mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
+            mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
+        }
+
         if (Input.GetKeyDown(KeyCode.K))
         {
             transform.eulerAngles = Vector3.zero;
