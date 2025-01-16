@@ -79,7 +79,6 @@ public class PlayerController : MonoBehaviour
             Debug.Log("ƒ`ƒ‡ƒL");
             if (stop)
             {
-                Debug.Log("ŒÄ‚Ño‚µ");
                 gimmickCon.LightHit();
                 lineRenderer.enabled = false;
                 return;
