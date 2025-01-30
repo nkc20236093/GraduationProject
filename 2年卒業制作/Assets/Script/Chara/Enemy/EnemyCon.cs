@@ -8,6 +8,8 @@ public class EnemyCon : MonoBehaviour
     [SerializeField] float outline = 1f;
     Transform Player;
     [SerializeField] Vector3[] point;
+    [SerializeField] float WalkSpeed = 5.0f;
+    [SerializeField] float RunSpeed = 7.5f;
     [Header("敵の番号\n0 = ダブルヘッド \n1 = 医者" +
         "\n2 = アイアンボックス\n3 = ノーマル敵")]
     public int EnemyNumber;
@@ -18,6 +20,8 @@ public class EnemyCon : MonoBehaviour
     public class Enemy
     {
         protected float chaseTimer = 0;
+        protected PlayerController player;
+        protected bool Stop = false;
         protected bool goalpoint = false;
         protected float stopTimer = 0;
         protected bool searchHit = false;
@@ -35,11 +39,12 @@ public class EnemyCon : MonoBehaviour
     public class DoubleHead : Enemy
     {
         bool movingUp = true;
-        Transform chilltrans; 
-        public DoubleHead(NavMeshAgent navi, Transform trans)
+        Transform chilltrans;
+        public DoubleHead(NavMeshAgent navi, Transform trans, PlayerController player)
         {
             chilltrans = trans;
             agent = navi;
+            this.player = player;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -50,12 +55,12 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(Vector3 targetpos, Transform mytrans)
         {
-            if (!searchHit) return;
+            if (searchHit) return;
             RaycastHit hit;
             Vector3 directionToPlayer = targetpos - mytrans.position;
             if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
@@ -90,7 +95,7 @@ public class EnemyCon : MonoBehaviour
                     Debug.Log("探索");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
-                    if (stopTimer < 2.5f)
+                    if (stopTimer < 2.5f && !searchHit) 
                     {
                         agent.isStopped = true;
                         goalpoint = true;
@@ -141,11 +146,12 @@ public class EnemyCon : MonoBehaviour
     {
         GameObject flask;
         Transform transform;
-        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform trans)
+        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform trans, PlayerController controller)
         {
             agent = navi;
             flask = Flask;
             transform = trans;
+            player = controller;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -161,7 +167,7 @@ public class EnemyCon : MonoBehaviour
             Vector3 directionToPlayer = targetpos - mytrans.position;
             if (Physics.Raycast(mytrans.position, directionToPlayer / 2, out hit))
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund")) 
                 {
                     float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
@@ -266,10 +272,11 @@ public class EnemyCon : MonoBehaviour
     public class IronBox : Enemy
     {
         private GameObject gameObject;
-        public IronBox(NavMeshAgent navi, GameObject game)
+        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller)
         {
             agent = navi;
             gameObject = game;
+            player = controller;
         }
         private Vector3 playerPos;
         public override void SetPoint(Vector3[] transforms)
@@ -287,7 +294,7 @@ public class EnemyCon : MonoBehaviour
             Vector3 directionToPlayer = targetpos - mytrans.position;
             if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
@@ -397,9 +404,11 @@ public class EnemyCon : MonoBehaviour
 
     public class NormalEnemy : Enemy
     {
-        public NormalEnemy(NavMeshAgent navi)
+        Transform trans;
+        public NormalEnemy(NavMeshAgent navi, PlayerController controller)
         {
             agent = navi;
+            player = controller;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -410,12 +419,13 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(Vector3 targetpos, Transform mytrans)
         {
-            if (searchHit) return;
+            if (searchHit || Stop) return;
+            trans = mytrans;
             RaycastHit hit;
             Vector3 directionToPlayer = targetpos - mytrans.position;
             if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
             {
-                if (hit.collider.CompareTag("Player"))
+                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
@@ -469,12 +479,16 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
+            if (Stop) return;
             Debug.Log("PlayerHit");
+            Stop = true;
+            player.Death();
         }
         public override void Chase(Vector3 target)
         {
             while (chaseTimer < 5.0f)
             {
+                if (Stop) break;
                 Debug.Log("追跡");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
@@ -487,7 +501,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint) 
+            if (goalpoint || Stop) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
@@ -511,15 +525,18 @@ public class EnemyCon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        PlayerController player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
         agent = GetComponent<NavMeshAgent>();
+        agent.speed = WalkSpeed;
+        agent.acceleration = RunSpeed;
         if (EnemyNumber == 1)
         {
             Flask = transform.GetChild(0).GetChild(0).gameObject;
         }
-        enemies[0] = new DoubleHead(agent, transform.GetChild(0));
-        enemies[1] = new PlagueDoctor(agent, Flask, transform);
-        enemies[2] = new IronBox(agent, gameObject);
-        enemies[3] = new NormalEnemy(agent);
+        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player);
+        enemies[1] = new PlagueDoctor(agent, Flask, transform, player);
+        enemies[2] = new IronBox(agent, gameObject, player);
+        enemies[3] = new NormalEnemy(agent, player);
         enemies[EnemyNumber].SetPoint(point);
         Player = GameObject.FindGameObjectWithTag("Player").transform;
     }

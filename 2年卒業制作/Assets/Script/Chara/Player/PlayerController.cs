@@ -6,7 +6,13 @@ using Cinemachine;
 public class PlayerController : MonoBehaviour
 {
     Janken[] jankens = new Janken[3];
-    int select = 0;
+    /// <summary>
+    /// じゃんけんの選択識別
+    /// 0 = チョキ
+    /// 1 = グー
+    /// 2 = パー
+    /// </summary>
+    int select = 2;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
     [SerializeField] CinemachineVirtualCamera virtualCamera;
@@ -51,6 +57,7 @@ public class PlayerController : MonoBehaviour
     {
         public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
         {
+            if (stop) return;
             Debug.Log("パー");
 
             lineRenderer.enabled = false;
@@ -64,7 +71,7 @@ public class PlayerController : MonoBehaviour
             {
                 float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
                 Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-                rigid.AddForce(moveDir * 10f);
+                rigid.velocity = moveDir * 2.5f;
             }
         }
     }
@@ -194,5 +201,14 @@ public class PlayerController : MonoBehaviour
             transform.eulerAngles = new Vector3(0, direction.y, 0);
             mPov.m_HorizontalAxis.Value = direction.y;
         }
+    }
+
+    public void Death()
+    {
+        if (stop) return;
+        stop = true;
+        // ここに死亡演出
+        GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+        gameDirector.DeadPerformance();
     }
 }
