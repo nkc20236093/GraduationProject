@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class GameDirector : MonoBehaviour
 {
-    [SerializeField] GameObject backUI;
+    [SerializeField] GameObject DeadUI;
+    [SerializeField] GameObject ClearUI;
     // Start is called before the first frame update
     void Start()
     {
-        backUI.SetActive(false);
+        DeadUI.SetActive(false);
+        ClearUI.SetActive(false);
     }
 
     // Update is called once per frame
@@ -18,6 +20,10 @@ public class GameDirector : MonoBehaviour
     }
     public void DeadPerformance()
     {
-        backUI.SetActive(true);
+        DeadUI.SetActive(true);
+    }
+    public void Clear()
+    {
+        ClearUI.SetActive(true);
     }
 }

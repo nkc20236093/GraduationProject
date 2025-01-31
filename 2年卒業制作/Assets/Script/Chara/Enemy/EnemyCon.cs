@@ -457,7 +457,7 @@ public class EnemyCon : MonoBehaviour
                 if (Patrolpoint.Length == 0 && searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    Debug.Log("’Tõ");
+                    //Debug.Log("’Tõ");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)

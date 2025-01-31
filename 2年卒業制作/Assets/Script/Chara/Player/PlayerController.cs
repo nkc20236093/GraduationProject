@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     /// 2 = パー
     /// </summary>
     int select = 2;
+    [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
     [SerializeField] CinemachineVirtualCamera virtualCamera;
@@ -25,12 +26,21 @@ public class PlayerController : MonoBehaviour
 
     public class Janken
     {
-        public virtual void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer) { }
+        protected LineRenderer lineRenderer;
+        public virtual void HandEffect() { }
     }
 
     public class Rock : Janken
     {
-        public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
+        AudioSource audio;
+        Transform transform;
+        public Rock(LineRenderer line, AudioSource audio, Transform transform)
+        {
+            lineRenderer = line;
+            this.audio = audio;
+            this.transform = transform;
+        }
+        public override void HandEffect()
         {
             Debug.Log("グー");
 
@@ -55,7 +65,15 @@ public class PlayerController : MonoBehaviour
 
     public class Paper : Janken
     {
-        public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
+        Rigidbody rigid;
+        float moveSpeed;
+        public Paper(LineRenderer line, Rigidbody rigidbody, float speed)
+        {
+            lineRenderer = line;
+            rigid = rigidbody;
+            moveSpeed = speed;
+        }
+        public override void HandEffect()
         {
             if (stop) return;
             Debug.Log("パー");
@@ -71,7 +89,7 @@ public class PlayerController : MonoBehaviour
             {
                 float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
                 Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
-                rigid.velocity = moveDir * 2.5f;
+                rigid.velocity = moveDir * moveSpeed;
             }
         }
     }
@@ -81,7 +99,11 @@ public class PlayerController : MonoBehaviour
         GimmickCon gimmickCon = null;
         RaycastHit hit;
         float lazerDistance = 10f;
-        public override void HandEffect(AudioSource audio, Rigidbody rigid, Transform transform, GameObject Finger, LineRenderer lineRenderer)
+        public Scissors(LineRenderer line)
+        {
+            lineRenderer = line;
+        }
+        public override void HandEffect()
         {
             Debug.Log("チョキ");
             if (stop)
@@ -136,10 +158,10 @@ public class PlayerController : MonoBehaviour
     {
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
-        jankens[0] = new Rock();
-        jankens[1] = new Scissors();
-        jankens[2] = new Paper();
         lineRenderer = Finger.GetComponent<LineRenderer>();
+        jankens[0] = new Rock(lineRenderer,audioSource,transform);
+        jankens[1] = new Scissors(lineRenderer);
+        jankens[2] = new Paper(lineRenderer, rigid, MoveSpeed);
     }
 
     // Update is called once per frame
@@ -163,7 +185,7 @@ public class PlayerController : MonoBehaviour
         {
             select = 2;
         }
-        jankens[select].HandEffect(audioSource, rigid, transform, Finger, lineRenderer);
+        jankens[select].HandEffect();
     }
 
     void CameraCon()
@@ -210,5 +232,13 @@ public class PlayerController : MonoBehaviour
         // ここに死亡演出
         GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         gameDirector.DeadPerformance();
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.gameObject.CompareTag("Exit"))
+        {
+            GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+            gameDirector.Clear();
+        }
     }
 }

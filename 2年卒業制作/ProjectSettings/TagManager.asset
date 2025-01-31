@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - Graund
   - Pillar
+  - Exit
   layers:
   - Default
   - TransparentFX
