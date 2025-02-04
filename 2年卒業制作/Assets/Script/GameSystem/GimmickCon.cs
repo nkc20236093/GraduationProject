@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 public class GimmickCon : MonoBehaviour
 {
@@ -36,7 +38,11 @@ public class GimmickCon : MonoBehaviour
         GameObject[] cables;
         LineRenderer[] colorLineRenderer = new LineRenderer[3];
         GameObject[] pillers;
+        Vector3[] points;
+        int[] bothWays = new int[2] { 1, -1 };
 
+        Vector3 localHitPoint;
+        int counts = default;
         bool first = false;
         bool rayHit = false;
         int colorNumber = 0;
@@ -105,7 +111,6 @@ public class GimmickCon : MonoBehaviour
                 colorLineRenderer[colorNumber].SetPosition(colorLineRenderer[colorNumber].positionCount - 1, new Vector3(value, 150, 0));
 
                 Vector3 startPos = colorLineRenderer[colorNumber].GetPosition(0);
-                Vector3 endPos = colorLineRenderer[colorNumber].GetPosition(colorLineRenderer[colorNumber].positionCount - 1);
                 Vector3 localStartPos = colorLineRenderer[colorNumber].transform.TransformPoint(colorLineRenderer[colorNumber].GetPosition(0));
                 Vector3 localEndPos = colorLineRenderer[colorNumber].transform.TransformPoint(colorLineRenderer[colorNumber].GetPosition(colorLineRenderer[colorNumber].positionCount - 1));
                 Vector3 direction = (localEndPos - localStartPos).normalized;
@@ -113,24 +118,37 @@ public class GimmickCon : MonoBehaviour
                 Ray ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
                 // Rayがヒットした座標をローカル座標に変換して追加
-                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")))
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null) 
                 {
-                    Vector3[] points = new Vector3[colorLineRenderer[colorNumber].positionCount + 1];
+                    rayHit = true;
+                    points = new Vector3[colorLineRenderer[colorNumber].positionCount + 1];
                     points[0] = startPos;
                     // ヒットした座標をローカル座標に変換
-                    Vector3 localHitPoint = hit.transform.InverseTransformPoint(hit.point * 100); 
-                    Debug.Log(localHitPoint);
-                    points[1] = new Vector3(localHitPoint.x, localHitPoint.x, 0);
-                    points[2] = endPos;
-                    colorLineRenderer[colorNumber].positionCount = 3;
-                    colorLineRenderer[colorNumber].SetPositions(points);
+                    localHitPoint = hit.transform.InverseTransformPoint(hit.collider.gameObject.transform.position);
+                    Debug.Log(localHitPoint * 100000000 + ":" + hit.point);
+                    if (localHitPoint.z > 0)
+                    {
+                        points[1] = new Vector3(bothWays[0] * localHitPoint.z, localHitPoint.y, 0) * 100000000;
+                    }
+                    else if (localHitPoint.z < 0)
+                    {
+                        points[1] = new Vector3(bothWays[1] * localHitPoint.z, localHitPoint.y, 0) * 100000000;
+                    }
+                    points[2] = new Vector3(value, 150, 0);
+                    counts = 3;
+                    Debug.Log(Mathf.Abs(value - localHitPoint.x));
+                    if (Mathf.Abs(value - localHitPoint.x) < 15)
+                    {
+                        rayHit = false;
+                    }
                 }
                 else
                 {
-                    Vector3[] points = new Vector3[2] { startPos, endPos };
-                    colorLineRenderer[colorNumber].positionCount = 2;
-                    colorLineRenderer[colorNumber].SetPositions(points);
+                    points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                    counts = 2;
                 }
+                colorLineRenderer[colorNumber].positionCount = counts;
+                colorLineRenderer[colorNumber].SetPositions(points);
                 return;
             }
         }

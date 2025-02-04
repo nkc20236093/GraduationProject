@@ -97,11 +97,13 @@ public class PlayerController : MonoBehaviour
     public class Scissors : Janken
     {
         GimmickCon gimmickCon = null;
+        GameObject finger;
         RaycastHit hit;
         float lazerDistance = 10f;
-        public Scissors(LineRenderer line)
+        public Scissors(LineRenderer line, GameObject FInger)
         {
             lineRenderer = line;
+            finger = FInger;
         }
         public override void HandEffect()
         {
@@ -116,7 +118,7 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKey(KeyCode.J))   
             {
                 lineRenderer.enabled = true;
-                Vector3 startPos = lineRenderer.GetPosition(0);
+                Vector3 startPos = finger.transform.position;
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
 
@@ -160,7 +162,7 @@ public class PlayerController : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
         jankens[0] = new Rock(lineRenderer,audioSource,transform);
-        jankens[1] = new Scissors(lineRenderer);
+        jankens[1] = new Scissors(lineRenderer, Finger);
         jankens[2] = new Paper(lineRenderer, rigid, MoveSpeed);
     }
 

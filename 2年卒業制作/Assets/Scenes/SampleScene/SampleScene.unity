@@ -1933,6 +1933,8 @@ MonoBehaviour:
   - {x: -7, y: 0, z: 7}
   - {x: -7, y: 0, z: -7}
   - {x: 7, y: 0, z: -7}
+  WalkSpeed: 5
+  RunSpeed: 7.5
   EnemyNumber: 3
   animator: {fileID: 2270827803711379631}
 --- !u!4 &1607416592
@@ -2611,6 +2613,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8bffcac4cbb2034297614a6b89cf105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MoveSpeed: 5
   audioSource: {fileID: 883418112436618007}
   Finger: {fileID: 1177771792652180704}
   virtualCamera: {fileID: 615990964}
@@ -3779,7 +3782,7 @@ Transform:
   m_GameObject: {fileID: 1177771792652180704}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5365,7 +5368,7 @@ LineRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Positions:
-  - {x: 0, y: 1.25, z: 0}
+  - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 10}
   m_Parameters:
     serializedVersion: 3
@@ -11296,6 +11299,8 @@ MonoBehaviour:
   - {x: -7, y: 0, z: 7}
   - {x: -7, y: 0, z: -7}
   - {x: 7, y: 0, z: -7}
+  WalkSpeed: 5
+  RunSpeed: 7.5
   EnemyNumber: 1
   animator: {fileID: 7785703391178905058}
 --- !u!4 &3496050239339532251
@@ -15434,6 +15439,8 @@ MonoBehaviour:
   - {x: -7, y: 0, z: 7}
   - {x: -7, y: 0, z: -7}
   - {x: 7, y: 0, z: -7}
+  WalkSpeed: 5
+  RunSpeed: 7.5
   EnemyNumber: 2
   animator: {fileID: 1849042366213890046}
 --- !u!1 &7631943006884553143
@@ -16632,6 +16639,8 @@ MonoBehaviour:
   - {x: -7, y: 0, z: 7}
   - {x: -7, y: 0, z: -7}
   - {x: 7, y: 0, z: -7}
+  WalkSpeed: 5
+  RunSpeed: 7.5
   EnemyNumber: 0
   animator: {fileID: 0}
 --- !u!1 &8671173559256902138
