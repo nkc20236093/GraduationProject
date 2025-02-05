@@ -26,4 +26,8 @@ public class GameDirector : MonoBehaviour
     {
         ClearUI.SetActive(true);
     }
+    public void GimmickEvent()
+    {
+        Debug.Log("ギミッククリアによるイベント");
+    }
 }

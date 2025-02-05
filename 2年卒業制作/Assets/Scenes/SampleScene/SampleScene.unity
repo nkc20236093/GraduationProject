@@ -167,7 +167,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 62513696}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -995,11 +995,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78d69f78a6c72354db541d1c250c446b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gimickNumber: 0
+  colorNumber: 0
   pillers: []
   cableObj: []
   cables: []
   firstSetPosition: []
+  CorrectCenter: []
+  CorrectUp: []
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1126,7 +1128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78d69f78a6c72354db541d1c250c446b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gimickNumber: 1
+  colorNumber: 0
   pillers:
   - {fileID: 1727825737}
   - {fileID: 1796453872}
@@ -1143,6 +1145,14 @@ MonoBehaviour:
   - {x: 0, y: 150, z: 0}
   - {x: 100, y: 150, z: 0}
   - {x: -100, y: 150, z: 0}
+  CorrectCenter:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  CorrectUp:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
 --- !u!4 &708556992
 Transform:
   m_ObjectHideFlags: 0
@@ -2204,7 +2214,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 40, y: 60}
+  m_AnchoredPosition: {x: 60, y: 60}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!136 &1796453874
@@ -2315,7 +2325,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 90, y: -100}
+  m_AnchoredPosition: {x: 80, y: -100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!136 &1900046746
