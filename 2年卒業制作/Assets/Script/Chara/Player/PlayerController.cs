@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class PlayerController : MonoBehaviour
     /// 2 = パー
     /// </summary>
     int select = 2;
+    [SerializeField] GameDirector gameDirector;
     [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
@@ -22,6 +24,8 @@ public class PlayerController : MonoBehaviour
     LineRenderer lineRenderer;
     Rigidbody rigid;
 
+    int hitCount = 0;
+    float hitCoolTime = 0;
     public static bool stop = false;
 
     public class Janken
@@ -158,6 +162,7 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
@@ -171,6 +176,16 @@ public class PlayerController : MonoBehaviour
     {
         CameraCon();
         Action();
+        DamaglHealing();
+    }
+    void DamaglHealing()
+    {
+        hitCoolTime += Time.deltaTime;
+        if (hitCoolTime >= 3)
+        {
+            hitCoolTime = 0;
+            hitCount--;
+        }
     }
     void Action()
     {
@@ -232,15 +247,18 @@ public class PlayerController : MonoBehaviour
         if (stop) return;
         stop = true;
         // ここに死亡演出
-        GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-        gameDirector.DeadPerformance();
     }
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.collider.gameObject.CompareTag("Exit"))
         {
-            GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-            gameDirector.Clear();
+            // ここでクリアの呼び出し
         }
+    }
+    public int DamageHitCount()
+    {
+        if (hitCoolTime >= 0) return hitCount;
+        hitCount++;
+        return hitCount;
     }
 }

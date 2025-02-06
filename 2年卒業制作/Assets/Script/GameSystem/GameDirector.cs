@@ -4,30 +4,27 @@ using UnityEngine;
 
 public class GameDirector : MonoBehaviour
 {
-    [SerializeField] GameObject DeadUI;
-    [SerializeField] GameObject ClearUI;
+    [SerializeField] UIDirector uIDirector;
     // Start is called before the first frame update
     void Start()
     {
-        DeadUI.SetActive(false);
-        ClearUI.SetActive(false);
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-    }
-    public void DeadPerformance()
-    {
-        DeadUI.SetActive(true);
-    }
-    public void Clear()
-    {
-        ClearUI.SetActive(true);
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            uIDirector.Damaged();
+        }
     }
     public void GimmickEvent()
     {
         Debug.Log("ギミッククリアによるイベント");
+    }
+    public void Dead()
+    {
+        uIDirector.DeadUI();
     }
 }

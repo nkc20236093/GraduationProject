@@ -34,6 +34,7 @@ public class GimmickCon : MonoBehaviour
         protected GimmickCon gimmickCon;
         protected Vector3[] points;
         protected int[] bothWays = new int[2] { 1, -1 };
+        protected string[] colorTag = new string[3] { "Red", "Green", "Cyan" };
         protected Vector3 localHitPoint = Vector3.zero;
         protected int counts = default;
         protected bool first = false;
@@ -67,7 +68,6 @@ public class GimmickCon : MonoBehaviour
                 colorLineRenderer.enabled = false;
                 // プレイヤーも操作可能に戻す
                 PlayerController.stop = false;
-                GimmickCon gimmickCon = (GimmickCon)GameObject.FindObjectOfType(typeof(GimmickCon));
                 gimmickCon.lightHit = false;
                 first = false;
             }
@@ -110,8 +110,9 @@ public class GimmickCon : MonoBehaviour
                 Ray ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
                 // Rayがヒットした座標をローカル座標に変換して追加
-                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)  
                 {
+                    if (!hit.collider.gameObject.CompareTag(colorTag[myNumber])) return;
                     rayHit = true;
                     points = new Vector3[colorLineRenderer  .positionCount + 1];
                     points[0] = startPos;
@@ -129,7 +130,6 @@ public class GimmickCon : MonoBehaviour
                     }
                     points[2] = new Vector3(value, 150, 0);
                     counts = 3;
-                    Debug.Log(Mathf.Abs(value - localHitPoint.x));
                     if (Mathf.Abs(value - localHitPoint.x) < 15)
                     {
                         rayHit = false;
@@ -177,7 +177,6 @@ public class GimmickCon : MonoBehaviour
                 colorLineRenderer.enabled = false;
                 // プレイヤーも操作可能に戻す
                 PlayerController.stop = false;
-                GimmickCon gimmickCon = (GimmickCon)GameObject.FindObjectOfType(typeof(GimmickCon));
                 gimmickCon.lightHit = false;
                 first = false;
             }
@@ -219,8 +218,9 @@ public class GimmickCon : MonoBehaviour
                 Ray ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
                 // Rayがヒットした座標をローカル座標に変換して追加
-                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null) 
                 {
+                    if (!hit.collider.gameObject.CompareTag(colorTag[myNumber])) return;
                     rayHit = true;
                     points = new Vector3[colorLineRenderer.positionCount + 1];
                     points[0] = startPos;
@@ -238,7 +238,6 @@ public class GimmickCon : MonoBehaviour
                     }
                     points[2] = new Vector3(value, 150, 0);
                     counts = 3;
-                    Debug.Log(Mathf.Abs(value - localHitPoint.x));
                     if (Mathf.Abs(value - localHitPoint.x) < 15)
                     {
                         rayHit = false;
@@ -285,7 +284,6 @@ public class GimmickCon : MonoBehaviour
                 colorLineRenderer.enabled = false;
                 // プレイヤーも操作可能に戻す
                 PlayerController.stop = false;
-                GimmickCon gimmickCon = (GimmickCon)GameObject.FindObjectOfType(typeof(GimmickCon));
                 gimmickCon.lightHit = false;
                 first = false;
             }
@@ -327,8 +325,9 @@ public class GimmickCon : MonoBehaviour
                 Ray ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
                 // Rayがヒットした座標をローカル座標に変換して追加
-                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null) 
                 {
+                    if (!hit.collider.gameObject.CompareTag(colorTag[myNumber])) return;
                     rayHit = true;
                     points = new Vector3[colorLineRenderer.positionCount + 1];
                     points[0] = startPos;
@@ -346,7 +345,6 @@ public class GimmickCon : MonoBehaviour
                     }
                     points[2] = new Vector3(value, 150, 0);
                     counts = 3;
-                    Debug.Log(Mathf.Abs(value - localHitPoint.x));
                     if (Mathf.Abs(value - localHitPoint.x) < 15)
                     {
                         rayHit = false;

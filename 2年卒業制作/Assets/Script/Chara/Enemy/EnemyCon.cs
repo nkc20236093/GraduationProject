@@ -225,11 +225,11 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Chase(Vector3 target)
         {
-            while (chaseTimer < 5.0f)
+            if (chaseTimer <= 10.0f)
             {
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
-                if (Mathf.Approximately(chaseTimer % 1.0f, 0f))
+                if (Mathf.Approximately(chaseTimer % 2, 0))
                 {
                     Debug.Log("ìäù±");
                     Vector3 pos = transform.position;
@@ -240,11 +240,13 @@ public class EnemyCon : MonoBehaviour
                     instance.GetComponent<Rigidbody>().AddForce(throwVec * 15, ForceMode.Impulse);
                 }
                 chaseTimer += Time.deltaTime;
-                if (chaseTimer >= 5.0f)
-                {
-                    chaseTimer = 0;
-                    break;
-                }
+                Debug.Log(chaseTimer);
+            }
+            else
+            {
+                Debug.Log("èIóπ");
+                searchHit = false;
+                chaseTimer = 0;
             }
         }
         public override void Animation(Animator animator)

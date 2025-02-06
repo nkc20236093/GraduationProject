@@ -9,6 +9,9 @@ TagManager:
   - Graund
   - Pillar
   - Exit
+  - Red
+  - Green
+  - Cyan
   layers:
   - Default
   - TransparentFX
