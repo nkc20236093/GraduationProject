@@ -36,10 +36,13 @@ public class GimmickCon : MonoBehaviour
         protected int[] bothWays = new int[2] { 1, -1 };
         protected string[] colorTag = new string[3] { "Red", "Green", "Cyan" };
         protected Vector3 localHitPoint = Vector3.zero;
+        protected Vector3 localEndPos = Vector3.zero;
         protected int counts = default;
+        protected int currentNumber = default;
         protected bool first = false;
         protected bool rayHit = false;
         protected RaycastHit hit;
+        protected Ray ray;
         public virtual void Operation() { }
     }
     public class RedCable: originGimmick
@@ -83,6 +86,7 @@ public class GimmickCon : MonoBehaviour
                             colorLineRenderer.enabled = true;
                         }
                         colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                        localEndPos = firstPosition[myNumber];
                         pillers[i].SetActive(true);
                     }
                     first = true;
@@ -102,51 +106,94 @@ public class GimmickCon : MonoBehaviour
                 value = Mathf.Clamp(value, -100, 100);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
 
-                Vector3 startPos = colorLineRenderer.GetPosition(0);
-                Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-                Vector3 localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-                Vector3 direction = (localEndPos - localStartPos).normalized;
+                points = new Vector3[colorLineRenderer.positionCount];
+                colorLineRenderer.GetPositions(points);
+                for (int i = 0; i < points.Length - 1; i++)
+                {
+                    Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(points[i]);
+                    Vector3 localEndPos = colorLineRenderer.transform.TransformPoint(points[i + 1]);
+                    Vector3 direction = localEndPos - localStartPos;
+                    Ray ray = new Ray(localStartPos, direction);
 
-                Ray ray = new Ray(localStartPos, direction);
-                Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
-                // Rayがヒットした座標をローカル座標に変換して追加
-                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)  
-                {
-                    if (!hit.collider.gameObject.CompareTag(colorTag[myNumber])) return;
-                    rayHit = true;
-                    points = new Vector3[colorLineRenderer  .positionCount + 1];
-                    points[0] = startPos;
-                    // ヒットした座標をローカル座標に変換
-                    Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
-                    localHitPoint = new Vector3(pos.x, pos.y, 0);
+                    Debug.DrawRay(ray.origin, ray.direction, Color.blue);
 
-                    if (localHitPoint.x > 0)
+                    if (Physics.Raycast(ray, out hit, Vector3.Distance(localStartPos, localEndPos), LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)  
                     {
-                        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                    }
-                    else if (localHitPoint.x < 0)
-                    {
-                        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                    }
-                    points[2] = new Vector3(value, 150, 0);
-                    counts = 3;
-                    if (Mathf.Abs(value - localHitPoint.x) < 15)
-                    {
-                        rayHit = false;
+                        Debug.Log(hit.collider.gameObject.name);
+                        Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
+                        localHitPoint = new Vector3(pos.x, pos.y, 0);
+                        RemoveDuplicateVectors(points);
+                        foreach (Vector3 vec in points)
+                        {
+                            Debug.Log(vec);
+                        }
+                        colorLineRenderer.positionCount++;
+                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, localHitPoint);
                     }
                 }
-                else
-                {
-                    points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
-                    counts = 2;
-                }
-                colorLineRenderer.positionCount = counts;
-                colorLineRenderer.SetPositions(points);
-                if (colorLineRenderer.GetPosition(1).Equals(correctPosCenter) && colorLineRenderer.GetPosition(2).Equals(correctPosCenter))
-                {
-                    gimmickCon.gimmickClears[myNumber] = true;
-                }
+                //Vector3 startPos = colorLineRenderer.GetPosition(currentNumber);
+                //Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(currentNumber));
+                //if (currentNumber + 1 > colorLineRenderer.positionCount - 1)
+                //{
+                //    localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
+                //}
+                //else
+                //{
+                //    localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(currentNumber + 1));
+                //}
+                //Vector3 direction = (localEndPos - localStartPos).normalized;
+
+                //Debug.Log(currentNumber);
+                //ray = new Ray(localStartPos, direction);
+                //Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+                //// Rayがヒットした座標をローカル座標に変換して追加
+                //if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) || rayHit && hit.collider != null)
+                //{
+                //    //if (!hit.collider.gameObject.CompareTag(colorTag[myNumber])) return;
+                //    currentNumber++;
+                //    rayHit = true;
+                //    points = new Vector3[colorLineRenderer.positionCount + 1];
+                //    points[0] = startPos;
+                //    // ヒットした座標をローカル座標に変換
+                //    Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
+                //    localHitPoint = new Vector3(pos.x, pos.y, 0);
+                //    points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
+                //    points[2] = new Vector3(value, 150, 0);
+                //    counts = currentNumber + 1;
+                //    if (Mathf.Abs(value - localHitPoint.x) < 15)
+                //    {
+                //        rayHit = false;
+                //    }
+                //}
+                //else
+                //{
+                //    points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                //    counts = 2;
+                //}
+                //colorLineRenderer.positionCount = counts;
+                //colorLineRenderer.SetPositions(points);
+                //if (colorLineRenderer.GetPosition(1).Equals(correctPosCenter) && colorLineRenderer.GetPosition(2).Equals(correctPosCenter))
+                //{
+                //    //gimmickCon.gimmickClears[myNumber] = true;
+                //}
                 return;
+            }
+            Vector3[] RemoveDuplicateVectors(Vector3[] input)
+            {
+                List<Vector3> result = new List<Vector3>();
+                HashSet<Vector3> seen = new HashSet<Vector3>();
+
+                foreach (Vector3 vec in input)
+                {
+                    // 重複していないVector3のみ追加
+                    if (!seen.Contains(vec))
+                    {
+                        seen.Add(vec);
+                        result.Add(vec);
+                    }
+                }
+
+                return result.ToArray();  // 重複を削除した結果を配列として返す
             }
         }
     }
@@ -319,8 +366,8 @@ public class GimmickCon : MonoBehaviour
 
                 Vector3 startPos = colorLineRenderer.GetPosition(0);
                 Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-                Vector3 localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-                Vector3 direction = (localEndPos - localStartPos).normalized;
+                Vector3 localNextPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
+                Vector3 direction = (localNextPos - localStartPos).normalized;
 
                 Ray ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
