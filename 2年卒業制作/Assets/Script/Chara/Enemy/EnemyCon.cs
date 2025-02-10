@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -19,18 +20,20 @@ public class EnemyCon : MonoBehaviour
     GameObject Flask;
     public class Enemy
     {
-        protected float chaseTimer = 0;
         protected PlayerController player;
         protected bool Stop = false;
         protected bool goalpoint = false;
-        protected float stopTimer = 0;
         protected bool searchHit = false;
+        protected float stopTimer = 0;
+        protected float chaseTimer = 0;
         protected int NowPoint = 0;
         protected NavMeshAgent agent;
+        protected NavMeshHit navHit;
         protected Vector3[] Patrolpoint = new Vector3[4];
+        protected Transform trans;
         public bool GetBool() { return searchHit; }
         public virtual void SetPoint(Vector3[] transforms) { }
-        public virtual void Search(Vector3 targetpos, Transform mytrans) { }
+        public virtual void Search(Vector3 targetpos) { }
         public virtual void Chase(Vector3 target) { }
         public virtual void Attack() { }
         public virtual void Animation(Animator animator) { }
@@ -40,11 +43,12 @@ public class EnemyCon : MonoBehaviour
     {
         bool movingUp = true;
         Transform chilltrans;
-        public DoubleHead(NavMeshAgent navi, Transform trans, PlayerController player)
+        public DoubleHead(NavMeshAgent navi, Transform chillTrans, PlayerController player, Transform mytrans)
         {
-            chilltrans = trans;
+            chilltrans = chillTrans;
             agent = navi;
             this.player = player;
+            trans = mytrans;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -53,16 +57,25 @@ public class EnemyCon : MonoBehaviour
                 Patrolpoint[i] = transforms[i];
             }
         }
-        public override void Search(Vector3 targetpos, Transform mytrans)
+        void FindPoint()
+        {
+            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
+            {
+                Debug.Log("åüçı");
+                Vector3 closestPoint = navHit.position;
+                agent.SetDestination(closestPoint);
+            }
+        }
+        public override void Search(Vector3 targetpos)
         {
             if (searchHit) return;
             RaycastHit hit;
-            Vector3 directionToPlayer = targetpos - mytrans.position;
-            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            Vector3 directionToPlayer = targetpos - trans.position;
+            if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
-                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
@@ -126,6 +139,7 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
+                    FindPoint();
                     break;
                 }
             }
@@ -145,12 +159,11 @@ public class EnemyCon : MonoBehaviour
     public class PlagueDoctor : Enemy
     {
         GameObject flask;
-        Transform transform;
-        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform trans, PlayerController controller)
+        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller)
         {
             agent = navi;
             flask = Flask;
-            transform = trans;
+            trans = myTrans;
             player = controller;
         }
         public override void SetPoint(Vector3[] transforms)
@@ -160,16 +173,25 @@ public class EnemyCon : MonoBehaviour
                 Patrolpoint[i] = transforms[i];
             }
         }
-        public override void Search(Vector3 targetpos, Transform mytrans)
+        void FindPoint()
+        {
+            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
+            {
+                Debug.Log("åüçı");
+                Vector3 closestPoint = navHit.position;
+                agent.SetDestination(closestPoint);
+            }
+        }
+        public override void Search(Vector3 targetpos)
         {
             if (searchHit) return;
             RaycastHit hit;
-            Vector3 directionToPlayer = targetpos - mytrans.position;
-            if (Physics.Raycast(mytrans.position, directionToPlayer / 2, out hit))
+            Vector3 directionToPlayer = targetpos - trans.position;
+            if (Physics.Raycast(trans.position, directionToPlayer / 2, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund")) 
                 {
-                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
@@ -232,11 +254,11 @@ public class EnemyCon : MonoBehaviour
                 if (Mathf.Approximately(chaseTimer % 2, 0))
                 {
                     Debug.Log("ìäù±");
-                    Vector3 pos = transform.position;
+                    Vector3 pos = trans.position;
                     pos.y += 0.5f;
                     GameObject instance = Instantiate(flask, pos, Quaternion.identity);
                     instance.SetActive(true);
-                    Vector3 throwVec = (target - transform.position).normalized;
+                    Vector3 throwVec = (target - trans.position).normalized;
                     instance.GetComponent<Rigidbody>().AddForce(throwVec * 15, ForceMode.Impulse);
                 }
                 chaseTimer += Time.deltaTime;
@@ -246,6 +268,7 @@ public class EnemyCon : MonoBehaviour
             {
                 Debug.Log("èIóπ");
                 searchHit = false;
+                FindPoint();
                 chaseTimer = 0;
             }
         }
@@ -274,11 +297,12 @@ public class EnemyCon : MonoBehaviour
     public class IronBox : Enemy
     {
         private GameObject gameObject;
-        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller)
+        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller, Transform myTrans)
         {
             agent = navi;
             gameObject = game;
             player = controller;
+            trans = myTrans;
         }
         private Vector3 playerPos;
         public override void SetPoint(Vector3[] transforms)
@@ -288,17 +312,26 @@ public class EnemyCon : MonoBehaviour
                 Patrolpoint[i] = transforms[i];
             }
         }
-        public override void Search(Vector3 targetpos, Transform mytrans)
+        void FindPoint()
+        {
+            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
+            {
+                Debug.Log("åüçı");
+                Vector3 closestPoint = navHit.position;
+                agent.SetDestination(closestPoint);
+            }
+        }
+        public override void Search(Vector3 targetpos)
         {
             playerPos = targetpos;
             if (searchHit) return;
             RaycastHit hit;
-            Vector3 directionToPlayer = targetpos - mytrans.position;
-            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            Vector3 directionToPlayer = targetpos - trans.position;
+            if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
-                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
@@ -366,6 +399,7 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 5.0f) 
                 {
                     chaseTimer = 0;
+                    FindPoint();
                     break;
                 }
             }
@@ -406,11 +440,11 @@ public class EnemyCon : MonoBehaviour
 
     public class NormalEnemy : Enemy
     {
-        Transform trans;
-        public NormalEnemy(NavMeshAgent navi, PlayerController controller)
+        public NormalEnemy(NavMeshAgent navi, PlayerController controller, Transform myTrans)
         {
             agent = navi;
             player = controller;
+            trans = myTrans;
         }
         public override void SetPoint(Vector3[] transforms)
         {
@@ -419,17 +453,25 @@ public class EnemyCon : MonoBehaviour
                 Patrolpoint[i] = transforms[i];
             }
         }
-        public override void Search(Vector3 targetpos, Transform mytrans)
+        void FindPoint()
+        {
+            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
+            {
+                Debug.Log("åüçı");
+                Vector3 closestPoint = navHit.position;
+                agent.SetDestination(closestPoint);
+            }
+        }
+        public override void Search(Vector3 targetpos)
         {
             if (searchHit || Stop) return;
-            trans = mytrans;
             RaycastHit hit;
-            Vector3 directionToPlayer = targetpos - mytrans.position;
-            if (Physics.Raycast(mytrans.position, directionToPlayer, out hit))
+            Vector3 directionToPlayer = targetpos - trans.position;
+            if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
-                    float angleToPlayer = Vector3.Angle(mytrans.forward, directionToPlayer);
+                    float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
                     if (angleToPlayer <= 90f / 2f)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
@@ -490,13 +532,13 @@ public class EnemyCon : MonoBehaviour
         {
             while (chaseTimer < 5.0f)
             {
-                if (Stop) break;
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
+                    FindPoint();
                     break;
                 }
             }
@@ -535,10 +577,10 @@ public class EnemyCon : MonoBehaviour
         {
             Flask = transform.GetChild(0).GetChild(0).gameObject;
         }
-        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player);
+        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player, transform);
         enemies[1] = new PlagueDoctor(agent, Flask, transform, player);
-        enemies[2] = new IronBox(agent, gameObject, player);
-        enemies[3] = new NormalEnemy(agent, player);
+        enemies[2] = new IronBox(agent, gameObject, player, transform);
+        enemies[3] = new NormalEnemy(agent, player, transform);
         enemies[EnemyNumber].SetPoint(point);
         Player = GameObject.FindGameObjectWithTag("Player").transform;
     }
@@ -552,7 +594,7 @@ public class EnemyCon : MonoBehaviour
         }
         else
         {
-            enemies[EnemyNumber].Search(Player.position, transform);
+            enemies[EnemyNumber].Search(Player.position);
         }
         enemies[EnemyNumber].Animation(animator);
     }

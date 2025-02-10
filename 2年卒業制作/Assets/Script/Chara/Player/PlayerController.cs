@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     public class Rock : Janken
     {
+        float coolTime = 0;
         AudioSource audio;
         Transform transform;
         public Rock(LineRenderer line, AudioSource audio, Transform transform)
@@ -51,8 +52,9 @@ public class PlayerController : MonoBehaviour
             lineRenderer.enabled = false;
 
             // ‚¶‚á‚ñ‚¯‚ñ”­“®ƒL[‚ªj‚¾‚Æ‰¼’è‚µ‚Ä
-            if (Input.GetKeyDown(KeyCode.J))
+            if (Input.GetKeyDown(KeyCode.J) && coolTime < 0)  
             {
+                coolTime = 3;
                 audio.Play();
                 Collider[] hitColliders = Physics.OverlapSphere(transform.position, 100f);
                 foreach (Collider col in hitColliders)
@@ -64,6 +66,7 @@ public class PlayerController : MonoBehaviour
                     }
                 }
             }
+            coolTime -= Time.deltaTime;
         }
     }
 
