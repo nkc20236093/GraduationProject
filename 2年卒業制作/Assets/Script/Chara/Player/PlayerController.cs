@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     int select = 2;
     [SerializeField] GameDirector gameDirector;
+    [SerializeField] MeshRenderer cylinder;
     [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
@@ -30,7 +31,6 @@ public class PlayerController : MonoBehaviour
 
     public class Janken
     {
-        protected LineRenderer lineRenderer;
         public virtual void HandEffect() { }
     }
 
@@ -39,18 +39,14 @@ public class PlayerController : MonoBehaviour
         float coolTime = 0;
         AudioSource audio;
         Transform transform;
-        public Rock(LineRenderer line, AudioSource audio, Transform transform)
+        public Rock(AudioSource audio, Transform transform)
         {
-            lineRenderer = line;
             this.audio = audio;
             this.transform = transform;
         }
         public override void HandEffect()
         {
             Debug.Log("グー");
-
-            lineRenderer.enabled = false;
-
             // じゃんけん発動キーがjだと仮定して
             if (Input.GetKeyDown(KeyCode.J) && coolTime < 0)  
             {
@@ -74,9 +70,8 @@ public class PlayerController : MonoBehaviour
     {
         Rigidbody rigid;
         float moveSpeed;
-        public Paper(LineRenderer line, Rigidbody rigidbody, float speed)
+        public Paper(Rigidbody rigidbody, float speed)
         {
-            lineRenderer = line;
             rigid = rigidbody;
             moveSpeed = speed;
         }
@@ -85,7 +80,6 @@ public class PlayerController : MonoBehaviour
             if (stop) return;
             Debug.Log("パー");
 
-            lineRenderer.enabled = false;
 
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
@@ -107,6 +101,7 @@ public class PlayerController : MonoBehaviour
         GameObject finger;
         RaycastHit hit;
         float lazerDistance = 10f;
+        LineRenderer lineRenderer;
         public Scissors(LineRenderer line, GameObject FInger)
         {
             lineRenderer = line;
@@ -124,7 +119,6 @@ public class PlayerController : MonoBehaviour
             // じゃんけん発動キーがjだと仮定して
             if (Input.GetKey(KeyCode.J))   
             {
-                lineRenderer.enabled = true;
                 Vector3 startPos = finger.transform.position;
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
@@ -145,6 +139,7 @@ public class PlayerController : MonoBehaviour
                             // ヒットしたら作動
                             stop = true;
                             gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
+                            return;
                         }
                     }
                 }
@@ -165,13 +160,12 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
-        jankens[0] = new Rock(lineRenderer,audioSource,transform);
+        jankens[0] = new Rock(audioSource,transform);
         jankens[1] = new Scissors(lineRenderer, Finger);
-        jankens[2] = new Paper(lineRenderer, rigid, MoveSpeed);
+        jankens[2] = new Paper(rigid, MoveSpeed);
     }
 
     // Update is called once per frame
@@ -206,6 +200,22 @@ public class PlayerController : MonoBehaviour
             select = 2;
         }
         jankens[select].HandEffect();
+        if (select != 1)
+        {
+            lineRenderer.enabled = false;
+        }
+        else
+        {
+            lineRenderer.enabled = true;
+        }
+        if (select != 0)
+        {
+            cylinder.enabled = false;
+        }
+        else
+        {
+            cylinder.enabled = true;
+        }
     }
 
     void CameraCon()
