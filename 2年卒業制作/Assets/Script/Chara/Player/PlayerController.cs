@@ -27,6 +27,8 @@ public class PlayerController : MonoBehaviour
 
     int hitCount = 0;
     float hitCoolTime = 0;
+    float timer = 0;
+    bool performance = false;
     public static bool stop = false;
 
     public class Janken
@@ -255,11 +257,32 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Death()
+    public IEnumerator EnemyDeath(Transform enemyMouth, float blackOutTime)
     {
-        if (stop) return;
-        stop = true;
-        // ここに死亡演出
+        transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.5f;
+        rigid.velocity = Vector3.zero;
+        while (!performance)
+        {
+            // ここに死亡演出
+            stop = true;
+            rigid.useGravity = false;
+            virtualCamera.enabled = false;
+            timer += Time.deltaTime;
+            if (timer < blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) > 0.5f)
+            {
+                transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
+                Camera.main.transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
+                transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
+                Camera.main.transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
+            }
+            else
+            {
+                performance = true;
+                // ここで画面がブラックアウト
+                Debug.Log("ブラックアウト");
+            }
+            yield return null;
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {
