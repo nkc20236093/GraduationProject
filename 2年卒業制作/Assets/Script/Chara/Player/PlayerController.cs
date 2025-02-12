@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     int select = 2;
     [SerializeField] GameDirector gameDirector;
     [SerializeField] MeshRenderer cylinder;
+    [Header("自分の姿のオンオフ用")] [SerializeField] MeshRenderer myMesh;
     [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
@@ -34,6 +35,7 @@ public class PlayerController : MonoBehaviour
     public class Janken
     {
         public virtual void HandEffect() { }
+        public virtual void Animation() { }
     }
 
     public class Rock : Janken
@@ -104,23 +106,33 @@ public class PlayerController : MonoBehaviour
         RaycastHit hit;
         float lazerDistance = 10f;
         LineRenderer lineRenderer;
-        public Scissors(LineRenderer line, GameObject FInger)
+        MeshRenderer myRender;
+        float timer = 0;
+        public Scissors(LineRenderer line, GameObject FInger, MeshRenderer mesh)
         {
             lineRenderer = line;
             finger = FInger;
+            myRender = mesh;
         }
         public override void HandEffect()
         {
             Debug.Log("チョキ");
-            if (stop)
+            if (stop) 
             {
                 gimmickCon.LightHit();
                 lineRenderer.enabled = false;
+                myRender.enabled = false;
                 return;
             }
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J))   
+            if (Input.GetKey(KeyCode.J))
             {
+                lineRenderer.enabled = true;
+                timer += Time.deltaTime;
+                if (timer > 0.5f) 
+                {
+                    myRender.enabled = false;
+                }
                 Vector3 startPos = finger.transform.position;
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
@@ -139,8 +151,8 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log("対象にヒット");
                             // ヒットしたら作動
-                            stop = true;
                             gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
+                            stop = true;
                             return;
                         }
                     }
@@ -155,6 +167,11 @@ public class PlayerController : MonoBehaviour
             {
                 lazerDistance = 10.0f;
                 lineRenderer.enabled = false;
+                if (!stop)
+                {
+                    myRender.enabled = true;
+                }
+                timer = 0;
             }
         }
     }
@@ -166,7 +183,7 @@ public class PlayerController : MonoBehaviour
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
         jankens[0] = new Rock(audioSource,transform);
-        jankens[1] = new Scissors(lineRenderer, Finger);
+        jankens[1] = new Scissors(lineRenderer, Finger, myMesh);
         jankens[2] = new Paper(rigid, MoveSpeed);
     }
 
@@ -206,10 +223,6 @@ public class PlayerController : MonoBehaviour
         {
             lineRenderer.enabled = false;
         }
-        else
-        {
-            lineRenderer.enabled = true;
-        }
         if (select != 0)
         {
             cylinder.enabled = false;
@@ -232,6 +245,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+
             mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
         }
@@ -268,6 +282,7 @@ public class PlayerController : MonoBehaviour
             rigid.useGravity = false;
             virtualCamera.enabled = false;
             timer += Time.deltaTime;
+            // 一定距離まで近づくか一定時間経過するとブラックアウト
             if (timer < blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) > 0.5f)
             {
                 transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);

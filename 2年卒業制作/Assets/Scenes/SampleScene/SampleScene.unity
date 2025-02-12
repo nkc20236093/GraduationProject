@@ -1140,7 +1140,7 @@ Transform:
   m_GameObject: {fileID: 615990963}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.05, z: 0.5}
+  m_LocalPosition: {x: 0, y: 1.5, z: -0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1744,7 +1744,7 @@ MonoBehaviour:
     m_MaxSpeed: 300
     m_AccelTime: 0.1
     m_DecelTime: 0.1
-    m_InputAxisName: 
+    m_InputAxisName: Mouse Y
     m_InputAxisValue: 0
     m_InvertInput: 1
     m_MinValue: -70
@@ -1768,7 +1768,7 @@ MonoBehaviour:
     m_MaxSpeed: 300
     m_AccelTime: 0.1
     m_DecelTime: 0.1
-    m_InputAxisName: 
+    m_InputAxisName: Mouse X
     m_InputAxisValue: 0
     m_InvertInput: 0
     m_MinValue: -180
@@ -1800,7 +1800,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 2
-  m_FollowOffset: {x: 0, y: 0.05, z: 0.5}
+  m_FollowOffset: {x: 0, y: 0.5, z: -0.5}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
@@ -2891,6 +2891,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameDirector: {fileID: 481940629}
   cylinder: {fileID: 5440440405537095547}
+  myMesh: {fileID: 4578616107737129811}
   MoveSpeed: 5
   audioSource: {fileID: 883418112436618007}
   Finger: {fileID: 1177771792652180704}
@@ -3755,7 +3756,7 @@ Transform:
   m_GameObject: {fileID: 2963235605753193362}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.05, z: 0.5}
+  m_LocalPosition: {x: 0, y: 1.5, z: -0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4189,7 +4190,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &971166623296584024
 Transform:
   m_ObjectHideFlags: 0
@@ -13734,7 +13735,7 @@ Transform:
   m_GameObject: {fileID: 967908156852070809}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 2, z: 6}
+  m_LocalPosition: {x: 6.54, y: 2, z: 6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17340,7 +17341,7 @@ Transform:
   m_GameObject: {fileID: 7908173027938571043}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.42, y: 2, z: 0}
+  m_LocalPosition: {x: 6.42, y: 2, z: -3.82}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -17493,8 +17494,8 @@ SceneRoots:
   - {fileID: 1267057753}
   - {fileID: 1200546563}
   - {fileID: 708556992}
+  - {fileID: 341750215}
   - {fileID: 511097716}
   - {fileID: 542827580}
-  - {fileID: 341750215}
   - {fileID: 1060565127}
   - {fileID: 481940630}

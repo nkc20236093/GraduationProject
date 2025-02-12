@@ -417,10 +417,9 @@ public class EnemyCon : MonoBehaviour
                 foreach (GameObject obj in ene)   
                 {
                     float distance = Vector3.Distance(new Vector3(obj.transform.position.x, 0, obj.transform.position.z), new Vector3(target.x, 0, target.z));
-                    if (distance <= 10 && obj != gameObject)  
+                    if (distance <= 20 && obj != gameObject)  
                     {
                         obj.GetComponent<EnemyCon>().enemies[obj.GetComponent<EnemyCon>().EnemyNumber].Chase(target);
-                        Debug.Log(obj.name);
                     }
                 }
             }
