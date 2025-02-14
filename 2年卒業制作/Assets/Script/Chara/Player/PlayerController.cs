@@ -9,8 +9,8 @@ public class PlayerController : MonoBehaviour
     Janken[] jankens = new Janken[3];
     /// <summary>
     /// じゃんけんの選択識別
-    /// 0 = チョキ
-    /// 1 = グー
+    /// 0 = グー
+    /// 1 = チョキ
     /// 2 = パー
     /// </summary>
     int select = 2;
@@ -51,8 +51,8 @@ public class PlayerController : MonoBehaviour
         public override void HandEffect()
         {
             Debug.Log("グー");
-            // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKeyDown(KeyCode.J) && coolTime < 0)  
+            // じゃんけん発動キーが左クリックだと仮定して
+            if (Input.GetMouseButtonDown(0) && coolTime < 0)
             {
                 coolTime = 3;
                 audio.Play();
@@ -125,7 +125,7 @@ public class PlayerController : MonoBehaviour
                 return;
             }
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J))
+            if (Input.GetMouseButton(0))
             {
                 lineRenderer.enabled = true;
                 timer += Time.deltaTime;
@@ -205,20 +205,22 @@ public class PlayerController : MonoBehaviour
     }
     void Action()
     {
-        // 仮にチョキをi、グーをu、パーをpとしたとき
-        if (Input.GetKeyDown(KeyCode.U))
+        if (!stop)
         {
-            select = 0;
-        }
-        else if (Input.GetKeyDown(KeyCode.I))
-        {
-            select = 1;
-        }
-        else if (Input.GetKeyDown(KeyCode.P))
-        {
-            select = 2;
+            // 仮にチョキを0、グーを1、パーを2としたとき
+            float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+
+            if (scrollInput > 0) // マウスホイールを上にスクロールした場合
+            {
+                select = (select + 1) % 3; // 0, 1, 2 の間をループ
+            }
+            else if (scrollInput < 0) // マウスホイールを下にスクロールした場合
+            {
+                select = (select - 1 + 3) % 3; // 0, 1, 2 の間をループ
+            }
         }
         jankens[select].HandEffect();
+
         if (select != 1)
         {
             lineRenderer.enabled = false;
@@ -311,5 +313,16 @@ public class PlayerController : MonoBehaviour
         if (hitCoolTime >= 0) return hitCount;
         hitCount++;
         return hitCount;
+    }
+    /// <summary>
+    /// じゃんけんの選択識別
+    /// 0 = グー
+    /// 1 = チョキ
+    /// 2 = パー
+    /// </summary>
+    /// <returns></returns>
+    public int GetSelect()
+    {
+        return select;
     }
 }

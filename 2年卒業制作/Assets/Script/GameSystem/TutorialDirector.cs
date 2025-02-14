@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public class TutorialDirector : MonoBehaviour
@@ -9,9 +10,11 @@ public class TutorialDirector : MonoBehaviour
     bool tutorialEnd = false;
     bool tutorialRunning = false;
     public string text;
+    [SerializeField] PlayerController playerController;
     [SerializeField] UIDirector uIDirector;
     public class tutorialOrigin
     {
+        protected PlayerController controller;
         protected int myNumber = 0;
         protected UIDirector uiDirector;
         protected TutorialDirector tutorialDirector;
@@ -25,73 +28,65 @@ public class TutorialDirector : MonoBehaviour
     }
     public class jankenTutorialScissors : tutorialOrigin
     {
-        public jankenTutorialScissors(int num, UIDirector ui, TutorialDirector director) : base(num, ui, director) { }
+        public jankenTutorialScissors(int num, UIDirector ui, TutorialDirector director, PlayerController player) : base(num, ui, director)
+        {
+            controller = player;
+        }
         public override void tutorial()
         {
-            tutorialDirector.text = "じゃんけんチュートリアル:チョキ";
-            while (!tutorialDirector.tutorialFlags[myNumber])
+            tutorialDirector.text = "手の形をチョキに変えてレーザーを出してみましょう";
+            if (controller.GetSelect() == 1 && Input.GetMouseButton(0))  
             {
-                if (Input.GetKeyDown(KeyCode.T))
-                {
-                    Debug.Log("進行");
-                    tutorialDirector.tutorialFlags[myNumber] = true;
-                }
+                tutorialDirector.tutorialFlags[myNumber] = true;
             }
         }
     }
     public class jankenTutorialPaper : tutorialOrigin
     {
-        public jankenTutorialPaper(int num, UIDirector ui, TutorialDirector director) : base(num, ui, director) { }
+        public jankenTutorialPaper(int num, UIDirector ui, TutorialDirector director, PlayerController player) : base(num, ui, director)
+        {
+            controller = player;
+        }
         public override void tutorial()
         {
-            tutorialDirector.text = "じゃんけんチュートリアル:パー";
-            while (!tutorialDirector.tutorialFlags[myNumber])
+            tutorialDirector.text = "手の形をパーに変えて動いてみましょう";
+            if (controller.GetSelect() == 2 && Input.GetButtonDown("Horizontal") || Input.GetButtonDown("Vertical")) 
             {
-                if (Input.GetKeyDown(KeyCode.T))
-                {
-                    Debug.Log("進行");
-                    tutorialDirector.tutorialFlags[myNumber] = true;
-                }
+                tutorialDirector.tutorialFlags[myNumber] = true;
             }
         }
     }
     public class jankenTutorialRock : tutorialOrigin
     {
-        public jankenTutorialRock(int num, UIDirector ui, TutorialDirector director) : base(num, ui, director)
+        public jankenTutorialRock(int num, UIDirector ui, TutorialDirector director, PlayerController player) : base(num, ui, director)
         {
-            myNumber = num;
-            uiDirector = ui;
-            tutorialDirector = director;
+            controller = player;
         }
         public override void tutorial()
         {
-            Debug.Log("待機");
-
-            tutorialDirector.text = "じゃんけんチュートリアル:グー";
-            while (!tutorialDirector.tutorialFlags[myNumber])
+            tutorialDirector.text = "手の形をグーに変えて叩いてみましょう";
+            if (controller.GetSelect() == 0 && Input.GetMouseButtonDown(0)) 
             {
-                if (Input.GetKeyDown(KeyCode.T))
-                {
-                    Debug.Log("進行");
-                    tutorialDirector.tutorialFlags[myNumber] = true;
-                }
+                tutorialDirector.tutorialFlags[myNumber] = true;
             }
         }
     }
 
     public class LightTutorial : tutorialOrigin
     {
-        public LightTutorial(int num, UIDirector ui, TutorialDirector director) : base(num, ui, director) { }
+        GameDirector gameDirector;
+        public LightTutorial(int num, UIDirector ui, TutorialDirector director, GameDirector game) : base(num, ui, director)
+        {
+            gameDirector = game;
+        }
         public override void tutorial()
         {
-            Debug.Log("待機");
-
-            tutorialDirector.text = "ライトチュートリアル";
-            while (!tutorialDirector.tutorialFlags[myNumber])
+            tutorialDirector.text = "手の形をチョキに変えてレーザーを配電盤に当てましょう";
+            if (PlayerController.stop) 
             {
-                if (Input.GetKeyDown(KeyCode.T))
+                tutorialDirector.text = "配電盤の線を動かして指定の形にしましょう\nマウスの左右のクリックで線を移動できます\nマウスカーソルを回すと移動させる線を変えれます\nescキーで終了";
+                if (gameDirector.gimmickClearFlags[0])
                 {
-                    Debug.Log("進行");
                     tutorialDirector.tutorialFlags[myNumber] = true;
                 }
             }
@@ -101,39 +96,59 @@ public class TutorialDirector : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tutorialOrigins[0] = new jankenTutorialRock(0, uIDirector, this);
-        tutorialOrigins[1] = new jankenTutorialPaper(1, uIDirector, this);
-        tutorialOrigins[2] = new jankenTutorialScissors(2, uIDirector, this);
-        tutorialOrigins[3] = new LightTutorial(3, uIDirector, this);
+        GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+        tutorialOrigins[0] = new jankenTutorialRock(0, uIDirector, this, playerController);
+        tutorialOrigins[1] = new jankenTutorialPaper(1, uIDirector, this, playerController);
+        tutorialOrigins[2] = new jankenTutorialScissors(2, uIDirector, this, playerController);
+        tutorialOrigins[3] = new LightTutorial(3, uIDirector, this, gameDirector);
         StartCoroutine(TutorialCor(0));
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log(playerController.GetSelect());
+        }
+        if (tutorialEnd)
+        {
+            // ここで最初のエリアの扉を開ける
+        }
     }
     IEnumerator TutorialCor(int count)
     {
-        if (!tutorialRunning)
+        if (tutorialEnd) yield break;
+        while (!tutorialFlags[count])
         {
-            tutorialRunning = true;
-            tutorialOrigins[count].tutorial();
-            yield return new WaitUntil(() => tutorialFlags[count]);
-            tutorialRunning = false;
-            if (!AllConditionsTrue())
+            if (!tutorialRunning)
             {
-                count++;
-                yield return StartCoroutine(TutorialCor(count));
-            }
-            else
-            {
-                tutorialEnd = false;
-                yield break;
+                tutorialRunning = true;
+                tutorialOrigins[count].tutorial();
+                yield return null;
+                if (tutorialFlags[count])
+                {
+                    tutorialRunning = false;
+                    if (AllConditionsTrue())
+                    {
+                        tutorialEnd = true;
+                        yield break;
+                    }
+                    else
+                    {
+                        count++;
+                        yield return StartCoroutine(TutorialCor(count));
+                    }
+                }
+                else
+                {
+                    tutorialRunning = false;
+                    yield return StartCoroutine(TutorialCor(count));
+                }
             }
         }
     }
-    bool AllConditionsTrue()
+    public bool AllConditionsTrue()
     {
         foreach (bool flag in tutorialFlags)
         {

@@ -14,7 +14,7 @@ public class EnemyCon : MonoBehaviour
     [SerializeField] float RunSpeed = 7.5f;
     [Header("敵の番号\n0 = ダブルヘッド \n1 = 医者" +
         "\n2 = アイアンボックス\n3 = ノーマル敵")]
-    public int EnemyNumber;
+    [SerializeField] int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
     [SerializeField] Animator animator;

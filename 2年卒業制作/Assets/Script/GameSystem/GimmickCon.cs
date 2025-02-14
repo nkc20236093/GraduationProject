@@ -7,17 +7,23 @@ using Color = UnityEngine.Color;
 public class GimmickCon : MonoBehaviour
 {
     originGimmick[] originGimmicks = new originGimmick[3];
-    [SerializeField] int colorNumber = 0;
+
+    [Header("自分が何番目の攻略される番号か")] 
+    [SerializeField] int myGimmickNumber = 1;
 
     [Header("配電盤用linerenderer\n赤、緑、紫の順番")]
     [SerializeField] GameObject[] pillers;
     [SerializeField] GameObject[] cableObj;
     [SerializeField] LineRenderer[] cables;
+
     [Header("最初の位置、リセットするたびに設定\n下の位置とする")]
     [SerializeField] Vector3[] firstSetPosition;
+
     [Header("正解の位置\n真ん中、上")]
     [SerializeField] Vector3[] CorrectCenter;
     [SerializeField] Vector3[] CorrectUp;
+
+    int colorNumber = 0;
     bool lightHit = false;
     bool OneAction = false;
     bool[] gimmickClears = new bool[3] { false, false, false };
@@ -90,12 +96,12 @@ public class GimmickCon : MonoBehaviour
                 }
 
                 float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-                // 仮にMとBで線を動かすとしたら
-                if (Input.GetKey(KeyCode.M))
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
                 {
                     value++;
                 }
-                else if (Input.GetKey(KeyCode.B))
+                else if (Input.GetMouseButton(0))
                 {
                     value--;
                 }
@@ -218,12 +224,12 @@ public class GimmickCon : MonoBehaviour
                 }
 
                 float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-                // 仮にMとBで線を動かすとしたら
-                if (Input.GetKey(KeyCode.M))
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
                 {
                     value++;
                 }
-                else if (Input.GetKey(KeyCode.B))
+                else if (Input.GetMouseButton(0))
                 {
                     value--;
                 }
@@ -345,12 +351,12 @@ public class GimmickCon : MonoBehaviour
                 }
 
                 float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-                // 仮にMとBで線を動かすとしたら
-                if (Input.GetKey(KeyCode.M))
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
                 {
                     value++;
                 }
-                else if (Input.GetKey(KeyCode.B))
+                else if (Input.GetMouseButton(0))
                 {
                     value--;
                 }
@@ -449,7 +455,7 @@ public class GimmickCon : MonoBehaviour
             }
             lightHit = false;
             GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
-            gameDirector.GimmickEvent();
+            gameDirector.GimmickEvent(myGimmickNumber);
         }
         if (lightHit)
         {
@@ -465,12 +471,12 @@ public class GimmickCon : MonoBehaviour
                 }
                 OneAction = true;
             }
-            // 仮にFとHで弄る線を変えるとしたら
-            if (Input.GetKeyDown(KeyCode.H))
+            // マウスのホイールで変更
+            if (Input.mouseScrollDelta.y > 0)
             {
                 colorNumber++;
             }
-            else if (Input.GetKeyDown(KeyCode.F))
+            else if (Input.mouseScrollDelta.y < 0)
             {
                 colorNumber--;
             }

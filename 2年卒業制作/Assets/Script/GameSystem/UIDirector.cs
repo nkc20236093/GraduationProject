@@ -39,14 +39,17 @@ public class UIDirector : MonoBehaviour
         {
             for (int i = 0; i < tutorialDirector.tutorialFlags.Length; i++)
             {
-                if (!tutorialDirector.tutorialFlags[i])
+                if (tutorialDirector.AllConditionsTrue())
+                {
+                    describeText.enabled = false;
+                    yield break;
+                }
+                else if (!tutorialDirector.tutorialFlags[i])
                 {
                     describeText.text = tutorialDirector.text;
                     yield return null;
-                    break;
                 }
             }
         }
-        describeText.enabled = false;
     }
 }
