@@ -59,6 +59,7 @@ public class GimmickCon : MonoBehaviour
         }
         public override void Operation()
         {
+
             Debug.Log("あやとり" + ":" + colorTag[myNumber]);
             // 仮にEscapeキーを押したら終了
             if (Input.GetKeyDown(KeyCode.Escape))
@@ -165,7 +166,7 @@ public class GimmickCon : MonoBehaviour
                 if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)
                 {
                     Debug.Log("赤OK");
-                    //gimmickCon.gimmickClears[myNumber] = true;
+                    gimmickCon.gimmickClears[myNumber] = true;
                 }
                 return;
             }
@@ -293,7 +294,7 @@ public class GimmickCon : MonoBehaviour
                 if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)
                 {
                     Debug.Log("緑OK");
-                    //gimmickCon.gimmickClears[myNumber] = true;
+                    gimmickCon.gimmickClears[myNumber] = true;
                 }
                 return;
             }
@@ -420,7 +421,7 @@ public class GimmickCon : MonoBehaviour
                 if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)  
                 {
                     Debug.Log("紫OK");
-                    //gimmickCon.gimmickClears[myNumber] = true;
+                    gimmickCon.gimmickClears[myNumber] = true;
                 }
                 return;
             }
@@ -442,6 +443,11 @@ public class GimmickCon : MonoBehaviour
         {
             // ギミッククリアによる変化を実行
             Debug.Log("クリア");
+            for (int i = 0; i < cables.Length; i++)
+            {
+                cables[i].enabled = false;
+            }
+            lightHit = false;
             GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
             gameDirector.GimmickEvent();
         }

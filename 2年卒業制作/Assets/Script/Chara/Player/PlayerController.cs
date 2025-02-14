@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     int select = 2;
     [SerializeField] GameDirector gameDirector;
+    [SerializeField] MeshRenderer cylinder;
+    [Header("自分の姿のオンオフ用")] [SerializeField] MeshRenderer myMesh;
     [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
     [SerializeField] GameObject Finger;
@@ -26,12 +28,14 @@ public class PlayerController : MonoBehaviour
 
     int hitCount = 0;
     float hitCoolTime = 0;
+    float timer = 0;
+    bool performance = false;
     public static bool stop = false;
 
     public class Janken
     {
-        protected LineRenderer lineRenderer;
         public virtual void HandEffect() { }
+        public virtual void Animation() { }
     }
 
     public class Rock : Janken
@@ -39,18 +43,14 @@ public class PlayerController : MonoBehaviour
         float coolTime = 0;
         AudioSource audio;
         Transform transform;
-        public Rock(LineRenderer line, AudioSource audio, Transform transform)
+        public Rock(AudioSource audio, Transform transform)
         {
-            lineRenderer = line;
             this.audio = audio;
             this.transform = transform;
         }
         public override void HandEffect()
         {
             Debug.Log("グー");
-
-            lineRenderer.enabled = false;
-
             // じゃんけん発動キーがjだと仮定して
             if (Input.GetKeyDown(KeyCode.J) && coolTime < 0)  
             {
@@ -74,9 +74,8 @@ public class PlayerController : MonoBehaviour
     {
         Rigidbody rigid;
         float moveSpeed;
-        public Paper(LineRenderer line, Rigidbody rigidbody, float speed)
+        public Paper(Rigidbody rigidbody, float speed)
         {
-            lineRenderer = line;
             rigid = rigidbody;
             moveSpeed = speed;
         }
@@ -85,7 +84,6 @@ public class PlayerController : MonoBehaviour
             if (stop) return;
             Debug.Log("パー");
 
-            lineRenderer.enabled = false;
 
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
@@ -107,24 +105,34 @@ public class PlayerController : MonoBehaviour
         GameObject finger;
         RaycastHit hit;
         float lazerDistance = 10f;
-        public Scissors(LineRenderer line, GameObject FInger)
+        LineRenderer lineRenderer;
+        MeshRenderer myRender;
+        float timer = 0;
+        public Scissors(LineRenderer line, GameObject FInger, MeshRenderer mesh)
         {
             lineRenderer = line;
             finger = FInger;
+            myRender = mesh;
         }
         public override void HandEffect()
         {
             Debug.Log("チョキ");
-            if (stop)
+            if (stop) 
             {
                 gimmickCon.LightHit();
                 lineRenderer.enabled = false;
+                myRender.enabled = false;
                 return;
             }
             // じゃんけん発動キーがjだと仮定して
-            if (Input.GetKey(KeyCode.J))   
+            if (Input.GetKey(KeyCode.J))
             {
                 lineRenderer.enabled = true;
+                timer += Time.deltaTime;
+                if (timer > 0.5f) 
+                {
+                    myRender.enabled = false;
+                }
                 Vector3 startPos = finger.transform.position;
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
@@ -143,8 +151,9 @@ public class PlayerController : MonoBehaviour
                         {
                             Debug.Log("対象にヒット");
                             // ヒットしたら作動
-                            stop = true;
                             gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
+                            stop = true;
+                            return;
                         }
                     }
                 }
@@ -158,6 +167,11 @@ public class PlayerController : MonoBehaviour
             {
                 lazerDistance = 10.0f;
                 lineRenderer.enabled = false;
+                if (!stop)
+                {
+                    myRender.enabled = true;
+                }
+                timer = 0;
             }
         }
     }
@@ -165,13 +179,12 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
-        jankens[0] = new Rock(lineRenderer,audioSource,transform);
-        jankens[1] = new Scissors(lineRenderer, Finger);
-        jankens[2] = new Paper(lineRenderer, rigid, MoveSpeed);
+        jankens[0] = new Rock(audioSource,transform);
+        jankens[1] = new Scissors(lineRenderer, Finger, myMesh);
+        jankens[2] = new Paper(rigid, MoveSpeed);
     }
 
     // Update is called once per frame
@@ -206,6 +219,18 @@ public class PlayerController : MonoBehaviour
             select = 2;
         }
         jankens[select].HandEffect();
+        if (select != 1)
+        {
+            lineRenderer.enabled = false;
+        }
+        if (select != 0)
+        {
+            cylinder.enabled = false;
+        }
+        else
+        {
+            cylinder.enabled = true;
+        }
     }
 
     void CameraCon()
@@ -220,6 +245,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+
             mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
         }
@@ -245,11 +271,33 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Death()
+    public IEnumerator EnemyDeath(Transform enemyMouth, float blackOutTime)
     {
-        if (stop) return;
-        stop = true;
-        // ここに死亡演出
+        transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.5f;
+        rigid.velocity = Vector3.zero;
+        while (!performance)
+        {
+            // ここに死亡演出
+            stop = true;
+            rigid.useGravity = false;
+            virtualCamera.enabled = false;
+            timer += Time.deltaTime;
+            // 一定距離まで近づくか一定時間経過するとブラックアウト
+            if (timer < blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) > 0.5f)
+            {
+                transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
+                Camera.main.transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
+                transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
+                Camera.main.transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
+            }
+            else
+            {
+                performance = true;
+                // ここで画面がブラックアウト
+                Debug.Log("ブラックアウト");
+            }
+            yield return null;
+        }
     }
     private void OnCollisionEnter(Collision collision)
     {

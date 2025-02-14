@@ -5,10 +5,14 @@ using UnityEngine.UI;
 
 public class UIDirector : MonoBehaviour
 {
+    private bool corStop = false;
+    [SerializeField] TutorialDirector tutorialDirector;
     [SerializeField] Image DamageImg;
+    [SerializeField] Text describeText;
     void Start()
     {
         DamageImg.color = Color.clear;
+        StartCoroutine(Tutorial(corStop));
     }
 
 
@@ -27,5 +31,22 @@ public class UIDirector : MonoBehaviour
     public void DeadUI()
     {
 
+    }
+    IEnumerator Tutorial(bool stop)
+    {
+        describeText.enabled = true;
+        while (!stop)
+        {
+            for (int i = 0; i < tutorialDirector.tutorialFlags.Length; i++)
+            {
+                if (!tutorialDirector.tutorialFlags[i])
+                {
+                    describeText.text = tutorialDirector.text;
+                    yield return null;
+                    break;
+                }
+            }
+        }
+        describeText.enabled = false;
     }
 }

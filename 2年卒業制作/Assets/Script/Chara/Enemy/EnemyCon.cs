@@ -6,7 +6,8 @@ using UnityEngine.AI;
 
 public class EnemyCon : MonoBehaviour
 {
-    [SerializeField] float outline = 1f;
+    [Header("ózìÆÅAî≠å©Ç‹Ç≈ÇÃçıìGîÕàÕ")] [SerializeField] float outline = 1f;
+    [SerializeField] GameObject mouth;
     Transform Player;
     [SerializeField] Vector3[] point;
     [SerializeField] float WalkSpeed = 5.0f;
@@ -20,6 +21,11 @@ public class EnemyCon : MonoBehaviour
     GameObject Flask;
     public class Enemy
     {
+        public Enemy(GameObject mouth)
+        {
+            myMouth = mouth;
+        }
+        protected float walkSpeed;
         protected PlayerController player;
         protected bool Stop = false;
         protected bool goalpoint = false;
@@ -27,12 +33,19 @@ public class EnemyCon : MonoBehaviour
         protected float stopTimer = 0;
         protected float chaseTimer = 0;
         protected int NowPoint = 0;
+        protected GameObject myMouth;
         protected NavMeshAgent agent;
-        protected NavMeshHit navHit;
         protected Vector3[] Patrolpoint = new Vector3[4];
         protected Transform trans;
+        protected RaycastHit hit;
         public bool GetBool() { return searchHit; }
-        public virtual void SetPoint(Vector3[] transforms) { }
+        public virtual void SetPoint(Vector3[] transforms) 
+        {
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                Patrolpoint[i] = transforms[i];
+            }
+        }
         public virtual void Search(Vector3 targetpos) { }
         public virtual void Chase(Vector3 target) { }
         public virtual void Attack() { }
@@ -43,40 +56,29 @@ public class EnemyCon : MonoBehaviour
     {
         bool movingUp = true;
         Transform chilltrans;
-        public DoubleHead(NavMeshAgent navi, Transform chillTrans, PlayerController player, Transform mytrans)
+        public DoubleHead(NavMeshAgent navi, Transform chillTrans, PlayerController player, Transform mytrans, float speed, GameObject Mouth) : base(Mouth)
         {
             chilltrans = chillTrans;
             agent = navi;
             this.player = player;
             trans = mytrans;
+            walkSpeed = speed;
+            myMouth = Mouth;
         }
         public override void SetPoint(Vector3[] transforms)
         {
-            for (int i = 0; i < transforms.Length; i++)
-            {
-                Patrolpoint[i] = transforms[i];
-            }
-        }
-        void FindPoint()
-        {
-            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
-            {
-                Debug.Log("åüçı");
-                Vector3 closestPoint = navHit.position;
-                agent.SetDestination(closestPoint);
-            }
+            base.SetPoint(transforms);
         }
         public override void Search(Vector3 targetpos)
         {
             if (searchHit) return;
-            RaycastHit hit;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
-                    if (angleToPlayer <= 90f / 2f)
+                    if (angleToPlayer <= 60)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
@@ -102,7 +104,7 @@ public class EnemyCon : MonoBehaviour
 
             void NextPoint()
             {
-                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
                     Debug.Log("íTçı");
@@ -110,13 +112,14 @@ public class EnemyCon : MonoBehaviour
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f && !searchHit) 
                     {
-                        agent.isStopped = true;
+                        agent.speed = 0;
+                        agent.ResetPath();
                         goalpoint = true;
                     }
                     else
                     {
+                        agent.speed = walkSpeed;
                         goalpoint = false;
-                        agent.isStopped = false;
                         agent.SetDestination(Patrolpoint[NowPoint]);
                         NowPoint = (NowPoint + 1) % Patrolpoint.Length;
                         stopTimer = 0;
@@ -127,19 +130,25 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
+            if (Stop) return;
             Debug.Log("PlayerHit");
+            Stop = true;
+            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3.2f));
         }
         public override void Chase(Vector3 target)
         {
+            agent.speed = 0;
+            agent.ResetPath();
+            if (Stop) return;
             while (chaseTimer < 5.0f)
             {
                 Debug.Log("í«ê’");
+                agent.speed = walkSpeed;
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
-                    FindPoint();
                     break;
                 }
             }
@@ -159,40 +168,29 @@ public class EnemyCon : MonoBehaviour
     public class PlagueDoctor : Enemy
     {
         GameObject flask;
-        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller)
+        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller, float speed, GameObject Mouth) : base(Mouth)
         {
             agent = navi;
             flask = Flask;
             trans = myTrans;
             player = controller;
+            walkSpeed = speed;
+            myMouth = Mouth;
         }
         public override void SetPoint(Vector3[] transforms)
         {
-            for (int i = 0; i < transforms.Length; i++)
-            {
-                Patrolpoint[i] = transforms[i];
-            }
-        }
-        void FindPoint()
-        {
-            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
-            {
-                Debug.Log("åüçı");
-                Vector3 closestPoint = navHit.position;
-                agent.SetDestination(closestPoint);
-            }
+            base.SetPoint(transforms);
         }
         public override void Search(Vector3 targetpos)
         {
             if (searchHit) return;
-            RaycastHit hit;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer / 2, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund")) 
                 {
                     float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
-                    if (angleToPlayer <= 90f / 2f)
+                    if (angleToPlayer <= 60)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
@@ -218,7 +216,7 @@ public class EnemyCon : MonoBehaviour
 
             void NextPoint()
             {
-                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
                     Debug.Log("íTçı");
@@ -226,13 +224,14 @@ public class EnemyCon : MonoBehaviour
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)
                     {
-                        agent.isStopped = true;
+                        agent.speed = 0;
+                        agent.ResetPath();
                         goalpoint = true;
                     }
                     else
                     {
                         goalpoint = false;
-                        agent.isStopped = false;
+                        agent.speed = walkSpeed;
                         agent.SetDestination(Patrolpoint[NowPoint]);
                         NowPoint = (NowPoint + 1) % Patrolpoint.Length;
                         stopTimer = 0;
@@ -243,16 +242,26 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
+            if (Stop) return;
             Debug.Log("PlayerHit");
+            Stop = true;
+            trans.localEulerAngles = new Vector3(player.transform.position.x - trans.position.x, 0, player.transform.position.z - trans.position.z);
+            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 5));
         }
         public override void Chase(Vector3 target)
         {
-            if (chaseTimer <= 10.0f)
+            agent.speed = 0;
+            agent.ResetPath();
+            if (Stop) return;
+            while (chaseTimer > 10.0f)
             {
+                agent.speed = walkSpeed;
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 if (Mathf.Approximately(chaseTimer % 2, 0))
                 {
+                    agent.ResetPath();
+                    agent.speed = 0;
                     Debug.Log("ìäù±");
                     Vector3 pos = trans.position;
                     pos.y += 0.5f;
@@ -261,20 +270,21 @@ public class EnemyCon : MonoBehaviour
                     Vector3 throwVec = (target - trans.position).normalized;
                     instance.GetComponent<Rigidbody>().AddForce(throwVec * 15, ForceMode.Impulse);
                 }
+                agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
-                Debug.Log(chaseTimer);
-            }
-            else
-            {
-                Debug.Log("èIóπ");
-                searchHit = false;
-                FindPoint();
-                chaseTimer = 0;
+                if (chaseTimer > 10.0f) 
+                {
+                    Debug.Log("èIóπ");
+                    searchHit = false;
+                    chaseTimer = 0;
+                    break;
+                }
+
             }
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint)
+            if (goalpoint || Stop) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
@@ -297,42 +307,29 @@ public class EnemyCon : MonoBehaviour
     public class IronBox : Enemy
     {
         private GameObject gameObject;
-        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller, Transform myTrans)
+        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller, Transform myTrans, float speed, GameObject Mouth) : base(Mouth)
         {
             agent = navi;
             gameObject = game;
             player = controller;
             trans = myTrans;
+            walkSpeed = speed;
+            myMouth = Mouth;
         }
-        private Vector3 playerPos;
         public override void SetPoint(Vector3[] transforms)
         {
-            for (int i = 0; i < transforms.Length; i++)
-            {
-                Patrolpoint[i] = transforms[i];
-            }
-        }
-        void FindPoint()
-        {
-            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
-            {
-                Debug.Log("åüçı");
-                Vector3 closestPoint = navHit.position;
-                agent.SetDestination(closestPoint);
-            }
+            base.SetPoint(transforms);
         }
         public override void Search(Vector3 targetpos)
         {
-            playerPos = targetpos;
             if (searchHit) return;
-            RaycastHit hit;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
-                    if (angleToPlayer <= 90f / 2f)
+                    if (angleToPlayer <= 120)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
@@ -358,7 +355,7 @@ public class EnemyCon : MonoBehaviour
 
             void NextPoint()
             {
-                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
                     Debug.Log("íTçı");
@@ -366,13 +363,14 @@ public class EnemyCon : MonoBehaviour
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)
                     {
-                        agent.isStopped = true;
+                        agent.speed = 0;
+                        agent.ResetPath();
                         goalpoint = true;
                     }
                     else
                     {
                         goalpoint = false;
-                        agent.isStopped = false;
+                        agent.speed = walkSpeed;
                         agent.SetDestination(Patrolpoint[NowPoint]);
                         NowPoint = (NowPoint + 1) % Patrolpoint.Length;
                         stopTimer = 0;
@@ -383,42 +381,52 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
+            if (Stop) return;
             Debug.Log("PlayerHit");
+            Stop = true;
+            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
         }
         public override void Chase(Vector3 target)
         {
-            if (chaseTimer == 0)
+            agent.speed = 0;
+            agent.ResetPath();
+            if (Stop) return;
+            while (chaseTimer < 6.0f)
             {
-                CallEnemy();
-            }
-            while (chaseTimer < 5.0f)
-            {
+                if (Mathf.Approximately(chaseTimer % 3.0f, 0))
+                {
+                    agent.speed = 0;
+                    agent.ResetPath();
+                    CallEnemy();
+                }
+
+                agent.speed = walkSpeed;
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
-                if (chaseTimer >= 5.0f) 
+                if (chaseTimer >= 6.0f) 
                 {
                     chaseTimer = 0;
-                    FindPoint();
                     break;
                 }
             }
             void CallEnemy()
             {
                 List<GameObject> ene = new List<GameObject>(GameObject.FindGameObjectsWithTag("Enemy")); ;
+                if (ene.Count == 0) return;
                 foreach (GameObject obj in ene)   
                 {
-                    float distance = Vector3.Distance(new Vector3(obj.transform.position.x, 0, obj.transform.position.z), new Vector3(playerPos.x, 0, playerPos.z)) ;
-                    if (distance <= 10 && obj != gameObject) 
+                    float distance = Vector3.Distance(new Vector3(obj.transform.position.x, 0, obj.transform.position.z), new Vector3(target.x, 0, target.z));
+                    if (distance <= 20 && obj != gameObject)  
                     {
-                        obj.GetComponent<EnemyCon>().enemies[obj.GetComponent<EnemyCon>().EnemyNumber].Chase(playerPos);
+                        obj.GetComponent<EnemyCon>().enemies[obj.GetComponent<EnemyCon>().EnemyNumber].Chase(target);
                     }
                 }
             }
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint)
+            if (goalpoint || Stop) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
@@ -440,39 +448,28 @@ public class EnemyCon : MonoBehaviour
 
     public class NormalEnemy : Enemy
     {
-        public NormalEnemy(NavMeshAgent navi, PlayerController controller, Transform myTrans)
+        public NormalEnemy(NavMeshAgent navi, PlayerController controller, Transform myTrans, float speed, GameObject Mouth) : base(Mouth)
         {
             agent = navi;
             player = controller;
             trans = myTrans;
+            walkSpeed = speed;
+            myMouth = Mouth;
         }
         public override void SetPoint(Vector3[] transforms)
         {
-            for (int i = 0; i < transforms.Length; i++)
-            {
-                Patrolpoint[i] = transforms[i];
-            }
-        }
-        void FindPoint()
-        {
-            if (NavMesh.SamplePosition(trans.position, out navHit, 100f, NavMesh.AllAreas))
-            {
-                Debug.Log("åüçı");
-                Vector3 closestPoint = navHit.position;
-                agent.SetDestination(closestPoint);
-            }
+            base.SetPoint(transforms);
         }
         public override void Search(Vector3 targetpos)
         {
             if (searchHit || Stop) return;
-            RaycastHit hit;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
                 if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
-                    if (angleToPlayer <= 90f / 2f)
+                    if (angleToPlayer <= 60)
                     {
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
@@ -498,21 +495,22 @@ public class EnemyCon : MonoBehaviour
 
             void NextPoint()
             {
-                if (Patrolpoint.Length == 0 && searchHit) return;
+                if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    //Debug.Log("íTçı");
+                    Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)
                     {
-                        agent.isStopped = true;
+                        agent.speed = 0;
+                        agent.ResetPath();
                         goalpoint = true;
                     }
                     else
                     {
                         goalpoint = false;
-                        agent.isStopped = false;
+                        agent.speed = walkSpeed;
                         agent.SetDestination(Patrolpoint[NowPoint]);
                         NowPoint = (NowPoint + 1) % Patrolpoint.Length;
                         stopTimer = 0;
@@ -526,19 +524,22 @@ public class EnemyCon : MonoBehaviour
             if (Stop) return;
             Debug.Log("PlayerHit");
             Stop = true;
-            player.Death();
+            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
         }
         public override void Chase(Vector3 target)
         {
+            agent.ResetPath();
+            agent.speed = 0;
+            if (Stop) return;
             while (chaseTimer < 5.0f)
             {
+                agent.speed = walkSpeed;
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
-                    FindPoint();
                     break;
                 }
             }
@@ -577,10 +578,10 @@ public class EnemyCon : MonoBehaviour
         {
             Flask = transform.GetChild(0).GetChild(0).gameObject;
         }
-        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player, transform);
-        enemies[1] = new PlagueDoctor(agent, Flask, transform, player);
-        enemies[2] = new IronBox(agent, gameObject, player, transform);
-        enemies[3] = new NormalEnemy(agent, player, transform);
+        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player, transform, agent.speed, mouth);
+        enemies[1] = new PlagueDoctor(agent, Flask, transform, player, agent.speed, mouth);
+        enemies[2] = new IronBox(agent, gameObject, player, transform, agent.speed, mouth);
+        enemies[3] = new NormalEnemy(agent, player, transform, agent.speed, mouth);
         enemies[EnemyNumber].SetPoint(point);
         Player = GameObject.FindGameObjectWithTag("Player").transform;
     }
@@ -614,7 +615,9 @@ public class EnemyCon : MonoBehaviour
     }
     public void Induction(Vector3 pos, float distance)
     {
-        if (distance < outline) return;
-        enemies[EnemyNumber].Chase(pos);
+        if (distance < outline)
+        {
+            enemies[EnemyNumber].Chase(pos);
+        }
     }
 }
