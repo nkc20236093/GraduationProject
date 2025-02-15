@@ -28,7 +28,6 @@ public class PlayerController : MonoBehaviour
 
     int hitCount = 0;
     float hitCoolTime = 0;
-    float timer = 0;
     bool performance = false;
     public static bool stop = false;
 
@@ -252,7 +251,7 @@ public class PlayerController : MonoBehaviour
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
         }
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.R))
         {
             transform.eulerAngles = Vector3.zero;
             mPov.m_VerticalAxis.Value = 0;
@@ -277,6 +276,7 @@ public class PlayerController : MonoBehaviour
     {
         transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.5f;
         rigid.velocity = Vector3.zero;
+        float timer = 0;
         while (!performance)
         {
             // ここに死亡演出
@@ -292,11 +292,13 @@ public class PlayerController : MonoBehaviour
                 transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
                 Camera.main.transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
             }
-            else
+            else if (timer > blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) < 0.5f) 
             {
                 performance = true;
                 // ここで画面がブラックアウト
                 Debug.Log("ブラックアウト");
+                // 死亡処理
+                gameDirector.GameOver();
             }
             yield return null;
         }
@@ -306,6 +308,7 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.gameObject.CompareTag("Exit"))
         {
             // ここでクリアの呼び出し
+            gameDirector.GameClear();
         }
     }
     public int DamageHitCount()

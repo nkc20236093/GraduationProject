@@ -6,6 +6,7 @@ public class GameDirector : MonoBehaviour
 {
     public bool[] gimmickClearFlags = new bool[4];
     [SerializeField] UIDirector uIDirector;
+    [SerializeField] TransitionPostEffect effect;
     // Start is called before the first frame update
     void Start()
     {
@@ -33,5 +34,14 @@ public class GameDirector : MonoBehaviour
     public void Dead()
     {
         uIDirector.DeadUI();
+    }
+    public void GameClear()
+    {
+        Debug.Log("ゲームクリア");
+    }
+    public void GameOver()
+    {
+        Debug.Log("ゲームオーバー");
+        effect.StartCoroutine(effect.Transition());
     }
 }
