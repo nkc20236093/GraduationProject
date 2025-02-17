@@ -6,6 +6,11 @@ using UnityEngine.UI;
 public class UIDirector : MonoBehaviour
 {
     private bool corStop = false;
+    Color[] damageColors = new Color[2]
+    {
+        new Color(0.7f, 0, 0, 0.5f),
+        new Color(0.7f, 0, 0, 0.7f)
+    };
     [SerializeField] TutorialDirector tutorialDirector;
     [SerializeField] Image DamageImg;
     [SerializeField] Text describeText;
@@ -24,13 +29,9 @@ public class UIDirector : MonoBehaviour
         }
     }
 
-    public void Damaged()
+    public void Damaged(int num)
     {
-        DamageImg.color = new Color(0.7f, 0, 0, 0.7f);
-    }
-    public void DeadUI()
-    {
-
+        DamageImg.color = damageColors[num - 1];
     }
     IEnumerator Tutorial(bool stop)
     {

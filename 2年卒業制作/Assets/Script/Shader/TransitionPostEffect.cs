@@ -6,31 +6,19 @@ using UnityEngine.UI;
 public class TransitionPostEffect : MonoBehaviour
 {
     [SerializeField] Image image;
+    [SerializeField] Sprite[] colorImage;
     [SerializeField] private Material postEffectMaterial; // 画面遷移ポストエフェクトのマテリアル
     [SerializeField] private float transitionTime = 2f; // 画面遷移の時間
     private readonly int _progressId = Shader.PropertyToID("_Progress"); // シェーダープロパティのReference名
 
     [SerializeField] private Text resultText;
-    private bool boot = false;
-
-    /// <summary>
-    /// テスト用
-    /// </summary>
-    void Update()
-    {
-        if (postEffectMaterial != null &&
-            !boot && Input.GetKeyDown(KeyCode.T))
-        {
-            StartCoroutine(Transition());
-            boot = true;
-        }
-    }
 
     /// <summary>
     /// 画面遷移
     /// </summary>
-    public IEnumerator Transition()
+    public IEnumerator Transition(int num)
     {
+        image.sprite = colorImage[num];
         image.enabled = true;
         float t = 0f;
         while (t < transitionTime)

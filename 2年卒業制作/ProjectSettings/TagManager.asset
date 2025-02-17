@@ -12,6 +12,7 @@ TagManager:
   - Red
   - Green
   - Cyan
+  - Position
   layers:
   - Default
   - TransparentFX

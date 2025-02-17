@@ -26,9 +26,9 @@ public class PlayerController : MonoBehaviour
     LineRenderer lineRenderer;
     Rigidbody rigid;
 
-    int hitCount = 0;
-    float hitCoolTime = 0;
+    float damageHealingTime = 0;
     bool performance = false;
+    public int hitCount = 0;
     public static bool stop = false;
 
     public class Janken
@@ -195,10 +195,12 @@ public class PlayerController : MonoBehaviour
     }
     void DamaglHealing()
     {
-        hitCoolTime += Time.deltaTime;
-        if (hitCoolTime >= 3)
+        hitCount = Mathf.Clamp(hitCount, 0, 10);
+        damageHealingTime += Time.deltaTime;
+        Debug.Log(hitCount);
+        if (damageHealingTime >= 5)
         {
-            hitCoolTime = 0;
+            damageHealingTime = 0;
             hitCount--;
         }
     }
@@ -253,6 +255,8 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
         {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.lockState = CursorLockMode.None;
             transform.eulerAngles = Vector3.zero;
             mPov.m_VerticalAxis.Value = 0;
             mPov.m_HorizontalAxis.Value = 0;
@@ -272,9 +276,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void PositionDead()
+    {
+        stop = true;
+        rigid.useGravity = false;
+        virtualCamera.enabled = false;
+        gameDirector.GameOver();
+    }
+
     public IEnumerator EnemyDeath(Transform enemyMouth, float blackOutTime)
     {
-        transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.5f;
+        transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.75f;
         rigid.velocity = Vector3.zero;
         float timer = 0;
         while (!performance)
@@ -285,14 +297,14 @@ public class PlayerController : MonoBehaviour
             virtualCamera.enabled = false;
             timer += Time.deltaTime;
             // 一定距離まで近づくか一定時間経過するとブラックアウト
-            if (timer < blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) > 0.5f)
+            if (timer < blackOutTime || Mathf.Approximately(Vector3.Distance(transform.position, enemyMouth.position), 1.0f))
             {
                 transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
                 Camera.main.transform.rotation = Quaternion.LookRotation(enemyMouth.position - transform.position);
                 transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
                 Camera.main.transform.position = Vector3.MoveTowards(transform.position, enemyMouth.position, 0.5f * Time.fixedUnscaledDeltaTime);
             }
-            else if (timer > blackOutTime || Vector3.Distance(transform.position, enemyMouth.position) < 0.5f) 
+            else if (timer > blackOutTime || Mathf.Approximately(Vector3.Distance(transform.position, enemyMouth.position), 1.0f))  
             {
                 performance = true;
                 // ここで画面がブラックアウト
@@ -310,12 +322,6 @@ public class PlayerController : MonoBehaviour
             // ここでクリアの呼び出し
             gameDirector.GameClear();
         }
-    }
-    public int DamageHitCount()
-    {
-        if (hitCoolTime >= 0) return hitCount;
-        hitCount++;
-        return hitCount;
     }
     /// <summary>
     /// じゃんけんの選択識別

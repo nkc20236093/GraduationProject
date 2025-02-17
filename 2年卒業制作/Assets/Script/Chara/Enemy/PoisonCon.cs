@@ -4,35 +4,46 @@ using UnityEngine;
 
 public class PoisonCon : MonoBehaviour
 {
-    GameDirector gameDirector;
-    float timer = 0;
+    float hitTimer = 0;
+    float timeLimit = 0;
     // Start is called before the first frame update
     void Start()
     {
-        gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        timer += Time.deltaTime;
-        if (timer >= 3)
+        timeLimit += Time.deltaTime;
+        if (timeLimit >= 3)
         {
             Destroy(gameObject);
         }
     }
-    private void OnTriggerStay(Collider other)
+    void OnTriggerStay(Collider other)
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            Debug.Log("ヒット");
-            // ダメージOR遅延効果
-            Rigidbody rigidbody = other.gameObject.GetComponent<Rigidbody>();
-            rigidbody.velocity *= 0.7f;
-            PlayerController player = other.gameObject.GetComponent<PlayerController>();
-            if (player.DamageHitCount() >= 10)
+            hitTimer += Time.deltaTime;
+            if (hitTimer > 1.5f)
             {
-                gameDirector.Dead();
+                Debug.Log("ヒット");
+                hitTimer = 0;
+                // ダメージOR遅延効果
+                Rigidbody rigidbody = other.gameObject.GetComponent<Rigidbody>();
+                rigidbody.velocity *= 0.7f;
+                PlayerController player = other.gameObject.GetComponent<PlayerController>();
+                player.hitCount++;
+                if (player.hitCount >= 3)
+                {
+                    player.PositionDead();
+                }
+                else if(player.hitCount < 3)
+                {
+                    UIDirector uIDirector =GameObject.Find("UIDirector").GetComponent<UIDirector>();
+                    uIDirector.Damaged(player.hitCount);
+                }
             }
         }
     }

@@ -27,7 +27,8 @@ public class EnemyCon : MonoBehaviour
         }
         protected float walkSpeed;
         protected PlayerController player;
-        protected bool Stop = false;
+        protected bool actionStop = false;
+        protected bool playerHit = false;
         protected bool goalpoint = false;
         protected bool searchHit = false;
         protected float stopTimer = 0;
@@ -71,7 +72,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(Vector3 targetpos)
         {
-            if (searchHit) return;
+            if (searchHit /*|| actionStop*/) return;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -130,16 +131,17 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (Stop) return;
+            if (playerHit) return;
             Debug.Log("PlayerHit");
-            Stop = true;
+            playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3.2f));
         }
         public override void Chase(Vector3 target)
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (Stop) return;
+            if (playerHit || actionStop) return;
+            actionStop = true;
             while (chaseTimer < 5.0f)
             {
                 Debug.Log("í«ê’");
@@ -149,6 +151,7 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
+                    actionStop = false;
                     break;
                 }
             }
@@ -167,6 +170,7 @@ public class EnemyCon : MonoBehaviour
 
     public class PlagueDoctor : Enemy
     {
+        float throwTime = 0;
         GameObject flask;
         public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller, float speed, GameObject Mouth) : base(Mouth)
         {
@@ -184,10 +188,11 @@ public class EnemyCon : MonoBehaviour
         public override void Search(Vector3 targetpos)
         {
             if (searchHit) return;
+            Debug.Log("Search");
             Vector3 directionToPlayer = targetpos - trans.position;
-            if (Physics.Raycast(trans.position, directionToPlayer / 2, out hit))
+            if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
-                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund")) 
+                if (hit.collider.CompareTag("Player") && !hit.collider.CompareTag("Graund"))
                 {
                     float angleToPlayer = Vector3.Angle(trans.forward, directionToPlayer);
                     if (angleToPlayer <= 60)
@@ -222,7 +227,7 @@ public class EnemyCon : MonoBehaviour
                     Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
-                    if (stopTimer < 2.5f)
+                    if (stopTimer < 2.5f && !searchHit)
                     {
                         agent.speed = 0;
                         agent.ResetPath();
@@ -230,8 +235,8 @@ public class EnemyCon : MonoBehaviour
                     }
                     else
                     {
-                        goalpoint = false;
                         agent.speed = walkSpeed;
+                        goalpoint = false;
                         agent.SetDestination(Patrolpoint[NowPoint]);
                         NowPoint = (NowPoint + 1) % Patrolpoint.Length;
                         stopTimer = 0;
@@ -242,9 +247,9 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (Stop) return;
+            if (playerHit) return;
             Debug.Log("PlayerHit");
-            Stop = true;
+            playerHit = true;
             trans.localEulerAngles = new Vector3(player.transform.position.x - trans.position.x, 0, player.transform.position.z - trans.position.z);
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 5));
         }
@@ -252,16 +257,17 @@ public class EnemyCon : MonoBehaviour
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (Stop) return;
-            while (chaseTimer > 10.0f)
+            if (playerHit || actionStop) return;
+            actionStop = true;
+            while (chaseTimer < 10.0f)
             {
+                throwTime += Time.deltaTime;
                 agent.speed = walkSpeed;
                 Debug.Log("í«ê’");
                 agent.SetDestination(target);
-                if (Mathf.Approximately(chaseTimer % 2, 0))
+                if (throwTime > 2) 
                 {
-                    agent.ResetPath();
-                    agent.speed = 0;
+                    throwTime = 0;
                     Debug.Log("ìäù±");
                     Vector3 pos = trans.position;
                     pos.y += 0.5f;
@@ -270,21 +276,21 @@ public class EnemyCon : MonoBehaviour
                     Vector3 throwVec = (target - trans.position).normalized;
                     instance.GetComponent<Rigidbody>().AddForce(throwVec * 15, ForceMode.Impulse);
                 }
-                agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
-                if (chaseTimer > 10.0f) 
+                if (chaseTimer >= 10.0f) 
                 {
                     Debug.Log("èIóπ");
+                    actionStop = false;
                     searchHit = false;
+                    throwTime = 0;
                     chaseTimer = 0;
                     break;
                 }
-
             }
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint || Stop) 
+            if (goalpoint || playerHit) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
@@ -381,16 +387,17 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (Stop) return;
+            if (playerHit) return;
             Debug.Log("PlayerHit");
-            Stop = true;
+            playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
         }
         public override void Chase(Vector3 target)
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (Stop) return;
+            if (playerHit || actionStop) return;
+            actionStop = true;
             while (chaseTimer < 6.0f)
             {
                 if (Mathf.Approximately(chaseTimer % 3.0f, 0))
@@ -407,6 +414,7 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 6.0f) 
                 {
                     chaseTimer = 0;
+                    actionStop = false;
                     break;
                 }
             }
@@ -426,7 +434,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint || Stop) 
+            if (goalpoint || playerHit) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
@@ -462,7 +470,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Search(Vector3 targetpos)
         {
-            if (searchHit || Stop) return;
+            if (searchHit || playerHit) return;
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -521,16 +529,17 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (Stop) return;
+            if (playerHit) return;
             Debug.Log("PlayerHit");
-            Stop = true;
+            playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
         }
         public override void Chase(Vector3 target)
         {
             agent.ResetPath();
             agent.speed = 0;
-            if (Stop) return;
+            if (playerHit || actionStop) return;
+            actionStop = true;
             while (chaseTimer < 5.0f)
             {
                 agent.speed = walkSpeed;
@@ -539,6 +548,7 @@ public class EnemyCon : MonoBehaviour
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
                 {
+                    actionStop = false;
                     chaseTimer = 0;
                     break;
                 }
@@ -546,7 +556,7 @@ public class EnemyCon : MonoBehaviour
         }
         public override void Animation(Animator animator)
         {
-            if (goalpoint || Stop) 
+            if (goalpoint || playerHit) 
             {
                 animator.SetBool("Move", false);
                 animator.SetBool("Run", false);
