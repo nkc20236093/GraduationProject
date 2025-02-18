@@ -14,6 +14,8 @@ public class UIDirector : MonoBehaviour
     [SerializeField] TutorialDirector tutorialDirector;
     [SerializeField] Image DamageImg;
     [SerializeField] Text describeText;
+    [SerializeField] Sprite[] JankenUIs = new Sprite[3];
+    [SerializeField] Image JankenUI;
     void Start()
     {
         DamageImg.color = Color.clear;
@@ -27,6 +29,10 @@ public class UIDirector : MonoBehaviour
         {
             DamageImg.color = Color.Lerp(DamageImg.color, Color.clear, Time.deltaTime);
         }
+    }
+    public void ChangeJankenUI(int num)
+    {
+        JankenUI.sprite = JankenUIs[num];
     }
 
     public void Damaged(int num)
