@@ -6,6 +6,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
     [Header("0 = SEボリューム\n1 = BGMボリューム")]
+    /// <summary>
+    /// 0 = SEボリューム
+    /// 1 = BGMボリューム
+    /// </summary>
     public float[] audiovolumes = new float[2];
     private void Awake()
     {

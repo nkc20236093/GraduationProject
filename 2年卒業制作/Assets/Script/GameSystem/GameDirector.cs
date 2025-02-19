@@ -5,6 +5,10 @@ using UnityEngine;
 public class GameDirector : MonoBehaviour
 {
     public bool[] gimmickClearFlags = new bool[4];
+    public bool chase = false;
+    [SerializeField] AudioSource audioSource;
+    [Header("0 = í èÌ\n1 = í«ê’íÜ")]
+    [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
     bool oneAction = false;
@@ -17,7 +21,17 @@ public class GameDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        audioSource.volume = GameManager.instance.audiovolumes[1];
+        if (chase && audioSource.clip != clips[1])
+        {
+            audioSource.clip = clips[1];
+            audioSource.Play();
+        }
+        else if (audioSource.clip != clips[0]) 
+        {
+            audioSource.clip = clips[0];
+            audioSource.Play();
+        }
     }
     public void GimmickEvent(int number)
     {

@@ -6,9 +6,11 @@ using UnityEngine.AI;
 
 public class EnemyCon : MonoBehaviour
 {
-    [Header("—z“®A”­Œ©‚Ü‚Å‚Ìõ“G”ÍˆÍ")] [SerializeField] float outline = 1f;
+    [Header("—z“®A”­Œ©‚Ü‚Å‚Ìõ“G”ÍˆÍ")] 
+    [SerializeField] float outline = 1f;
     [SerializeField] GameObject mouth;
-    Transform Player;
+    [SerializeField] Animator animator;
+    [SerializeField] AudioSource myAudio;
     [SerializeField] Vector3[] point;
     [SerializeField] float WalkSpeed = 5.0f;
     [SerializeField] float RunSpeed = 7.5f;
@@ -17,7 +19,7 @@ public class EnemyCon : MonoBehaviour
     [SerializeField] int EnemyNumber;
     Enemy[] enemies = new Enemy[4];
     NavMeshAgent agent;
-    [SerializeField] Animator animator;
+    Transform Player;
     GameObject Flask;
     public class Enemy
     {
@@ -33,6 +35,7 @@ public class EnemyCon : MonoBehaviour
         protected bool searchHit = false;
         protected float stopTimer = 0;
         protected float chaseTimer = 0;
+        protected float SEtimer = 0;
         protected int NowPoint = 0;
         protected GameObject myMouth;
         protected NavMeshAgent agent;
@@ -47,9 +50,16 @@ public class EnemyCon : MonoBehaviour
                 Patrolpoint[i] = transforms[i];
             }
         }
-        public virtual void Search(Vector3 targetpos) { }
+        public virtual void Search(Vector3 targetpos, AudioSource audioSource) { }
         public virtual void Chase(Vector3 target) { }
-        public virtual void Attack() { }
+        public virtual void Attack()
+        {
+            if (playerHit) return;
+            Debug.Log("PlayerHit");
+            playerHit = true;
+            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
+        }
+
         public virtual void Animation(Animator animator) { }
     }
 
@@ -70,9 +80,15 @@ public class EnemyCon : MonoBehaviour
         {
             base.SetPoint(transforms);
         }
-        public override void Search(Vector3 targetpos)
+        public override void Search(Vector3 targetpos, AudioSource audioSource)
         {
-            if (searchHit /*|| actionStop*/) return;
+            if (searchHit || actionStop) return;
+            SEtimer += Time.deltaTime;
+            if (SEtimer > 2.0f)
+            {
+                SEtimer = 0;
+                audioSource.Play();
+            }
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -185,10 +201,15 @@ public class EnemyCon : MonoBehaviour
         {
             base.SetPoint(transforms);
         }
-        public override void Search(Vector3 targetpos)
+        public override void Search(Vector3 targetpos, AudioSource audioSource)
         {
             if (searchHit) return;
-            Debug.Log("Search");
+            SEtimer += Time.deltaTime;
+            if (SEtimer > 2.0f)
+            {
+                SEtimer = 0;
+                audioSource.Play();
+            }
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -247,11 +268,7 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (playerHit) return;
-            Debug.Log("PlayerHit");
-            playerHit = true;
-            trans.localEulerAngles = new Vector3(player.transform.position.x - trans.position.x, 0, player.transform.position.z - trans.position.z);
-            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 5));
+            base.Attack();
         }
         public override void Chase(Vector3 target)
         {
@@ -326,9 +343,15 @@ public class EnemyCon : MonoBehaviour
         {
             base.SetPoint(transforms);
         }
-        public override void Search(Vector3 targetpos)
+        public override void Search(Vector3 targetpos, AudioSource audioSource)
         {
             if (searchHit) return;
+            SEtimer += Time.deltaTime;
+            if (SEtimer > 2.0f)
+            {
+                SEtimer = 0;
+                audioSource.Play();
+            }
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -387,10 +410,7 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (playerHit) return;
-            Debug.Log("PlayerHit");
-            playerHit = true;
-            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
+            base.Attack();
         }
         public override void Chase(Vector3 target)
         {
@@ -468,9 +488,15 @@ public class EnemyCon : MonoBehaviour
         {
             base.SetPoint(transforms);
         }
-        public override void Search(Vector3 targetpos)
+        public override void Search(Vector3 targetpos, AudioSource audioSource)
         {
             if (searchHit || playerHit) return;
+            SEtimer += Time.deltaTime;
+            if (SEtimer > 4f)
+            {
+                SEtimer = 0;
+                audioSource.Play();
+            }
             Vector3 directionToPlayer = targetpos - trans.position;
             if (Physics.Raycast(trans.position, directionToPlayer, out hit))
             {
@@ -529,10 +555,7 @@ public class EnemyCon : MonoBehaviour
 
         public override void Attack()
         {
-            if (playerHit) return;
-            Debug.Log("PlayerHit");
-            playerHit = true;
-            player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
+            base.Attack();
         }
         public override void Chase(Vector3 target)
         {
@@ -599,13 +622,14 @@ public class EnemyCon : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        myAudio.volume = GameManager.instance.audiovolumes[0];
         if (enemies[EnemyNumber].GetBool())
         {
             enemies[EnemyNumber].Chase(Player.position);
         }
         else
         {
-            enemies[EnemyNumber].Search(Player.position);
+            enemies[EnemyNumber].Search(Player.position,myAudio);
         }
         enemies[EnemyNumber].Animation(animator);
     }

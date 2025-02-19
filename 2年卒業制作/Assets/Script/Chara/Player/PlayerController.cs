@@ -37,42 +37,78 @@ public class PlayerController : MonoBehaviour
 
     public class Janken
     {
-        protected float saveTime;
+        const float fadeTime = 1 / 3;
+        bool isFade = false;
+        protected bool isClick = false;
         protected Animator animator;
         public Janken(Animator animator)
         {
             this.animator = animator;
         }
-        public virtual void HandEffect() { }
-        public virtual void Animation(int num) 
+        protected void FadeSkinne(Material material)
         {
+            Color firstColor = material.color;
+            Color tarthetColor = isFade ? new Color(firstColor.r, firstColor.g, firstColor.b, 1.0f) : new Color(firstColor.r, firstColor.g, firstColor.b, 0.0f);
+            float nowTime = 0;
+            if (nowTime < fadeTime) 
+            {
+                nowTime += Time.deltaTime;
+                float t = nowTime / fadeTime;
+                material.color = Color.Lerp(firstColor, tarthetColor, t);
+            }
+            else
+            {
+                isFade = !isFade;
+            }
+        }
+        public virtual void HandEffect() { }
+        public virtual void Animation(int num, Material material) 
+        {
+            if (Input.GetMouseButton(0))
+            {
+                isClick = true;
+            }
+            else
+            {
+                isClick = false;
+            }
             switch(num)
             {
                 case 0:
-                    animator.SetBool("Rock", true);
-                    animator.SetBool("Scissors", false);
-                    animator.SetBool("Paper", false);
+                    if (isClick)
+                    {
+                        FadeSkinne(material); 
+                        break;
+                    }
                     break;
                 case 1:
-                    animator.SetBool("Rock", false);
-                    animator.SetBool("Scissors", true);
-                    animator.SetBool("Paper", false);
+                    if (isClick)
+                    {
+                        FadeSkinne(material);
+                        break;
+                    }
                     break;
                 case 2:
-                    if (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
+                    if (Input.GetButton("Horizontal")|| Input.GetButton("Vertical")) 
                     {
-                        animator.speed = saveTime;
+                        if (Input.GetAxis("Vertical") > 0)
+                        {
+                            animator.SetFloat("speed", 1);
+                        }
+                        else if (Input.GetAxis("Vertical") < 0)
+                        {
+                            animator.SetFloat("speed", -1);
+                        }
                         animator.SetBool("Paper", true);
                         animator.SetBool("Rock", false);
                         animator.SetBool("Scissors", false);
                     }
                     else
                     {
-                        animator.SetBool("Paper", true);
+                        animator.SetBool("Paper", false);
                         animator.SetBool("Rock", false);
                         animator.SetBool("Scissors", false);
-                        saveTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                        animator.speed = 0;
+                        animator.SetFloat("speed", 0);
                     }
                     break;
             }
@@ -91,10 +127,10 @@ public class PlayerController : MonoBehaviour
         }
         public override void HandEffect()
         {
-            Debug.Log("グー");
             // じゃんけん発動キーが左クリックだと仮定して
             if (Input.GetMouseButtonDown(0) && coolTime < 0)
             {
+                Debug.Log("");
                 coolTime = 3;
                 audio.Play();
                 Collider[] hitColliders = Physics.OverlapSphere(transform.position, 100f);
@@ -109,9 +145,9 @@ public class PlayerController : MonoBehaviour
             }
             coolTime -= Time.deltaTime;
         }
-        public override void Animation(int num)
+        public override void Animation(int num, Material material)
         {
-            base.Animation(num);
+            base.Animation(num, material);
         }
     }
 
@@ -128,8 +164,6 @@ public class PlayerController : MonoBehaviour
         public override void HandEffect()
         {
             if (stop) return;
-            Debug.Log("パー");
-
 
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
@@ -142,6 +176,10 @@ public class PlayerController : MonoBehaviour
                 Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
                 rigid.velocity = moveDir * moveSpeed;
             }
+        }
+        public override void Animation(int num, Material material)
+        {
+            base.Animation(num, material);
         }
     }
 
@@ -163,7 +201,6 @@ public class PlayerController : MonoBehaviour
         }
         public override void HandEffect()
         {
-            Debug.Log("チョキ");
             if (stop) 
             {
                 gimmickCon.LightHit();
@@ -173,6 +210,7 @@ public class PlayerController : MonoBehaviour
             // じゃんけん発動キーが左クリック
             if (Input.GetMouseButton(0))
             {
+                Debug.Log("");
                 lineRenderer[0].enabled = true;
                 lineRenderer[1].enabled = true;
                 timer += Time.deltaTime;
@@ -223,6 +261,10 @@ public class PlayerController : MonoBehaviour
                 timer = 0;
             }
         }
+        public override void Animation(int num, Material material)
+        {
+            base.Animation(num, material);
+        }
     }
 
     // Start is called before the first frame update
@@ -242,6 +284,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        audioSource.volume = GameManager.instance.audiovolumes[0];
         CameraCon();
         Action();
         DamaglHealing();
@@ -250,7 +293,6 @@ public class PlayerController : MonoBehaviour
     {
         hitCount = Mathf.Clamp(hitCount, 0, 10);
         damageHealingTime += Time.deltaTime;
-        Debug.Log(hitCount);
         if (damageHealingTime >= 5)
         {
             damageHealingTime = 0;
@@ -272,6 +314,7 @@ public class PlayerController : MonoBehaviour
             {
                 select = (select - 1 + 3) % 3; // 0, 1, 2 の間をループ
             }
+            jankens[select].Animation(select, myMesh.material);
         }
         jankens[select].HandEffect();
         uIDirector.ChangeJankenUI(select);
@@ -342,6 +385,7 @@ public class PlayerController : MonoBehaviour
 
     public IEnumerator EnemyDeath(Transform enemyMouth, float blackOutTime)
     {
+        if (stop) yield break;
         transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.75f;
         rigid.velocity = Vector3.zero;
         float timer = 0;
