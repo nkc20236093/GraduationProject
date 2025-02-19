@@ -14,16 +14,20 @@ public class PlayerController : MonoBehaviour
     /// 2 = パー
     /// </summary>
     int select = 2;
-    [SerializeField] GameDirector gameDirector;
     [SerializeField] MeshRenderer cylinder;
-    [Header("自分の姿のオンオフ用")] [SerializeField] MeshRenderer myMesh;
+    [Header("自分の姿のオンオフ用")] [SerializeField] SkinnedMeshRenderer myMesh;
     [SerializeField] float MoveSpeed = 5;
     [SerializeField] AudioSource audioSource;
-    [SerializeField] GameObject Finger;
+    [Header("中指、人差し指の順")]
+    [SerializeField] GameObject[] Finger;
+    [SerializeField] LineRenderer[] lineRenderer;
+
+    [SerializeField] GameDirector gameDirector;
+    [SerializeField] UIDirector uIDirector;
+    [SerializeField] Animator animator;
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     CinemachinePOV mPov;
 
-    LineRenderer lineRenderer;
     Rigidbody rigid;
 
     float damageHealingTime = 0;
@@ -33,8 +37,46 @@ public class PlayerController : MonoBehaviour
 
     public class Janken
     {
+        protected float saveTime;
+        protected Animator animator;
+        public Janken(Animator animator)
+        {
+            this.animator = animator;
+        }
         public virtual void HandEffect() { }
-        public virtual void Animation() { }
+        public virtual void Animation(int num) 
+        {
+            switch(num)
+            {
+                case 0:
+                    animator.SetBool("Rock", true);
+                    animator.SetBool("Scissors", false);
+                    animator.SetBool("Paper", false);
+                    break;
+                case 1:
+                    animator.SetBool("Rock", false);
+                    animator.SetBool("Scissors", true);
+                    animator.SetBool("Paper", false);
+                    break;
+                case 2:
+                    if (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))
+                    {
+                        animator.speed = saveTime;
+                        animator.SetBool("Paper", true);
+                        animator.SetBool("Rock", false);
+                        animator.SetBool("Scissors", false);
+                    }
+                    else
+                    {
+                        animator.SetBool("Paper", true);
+                        animator.SetBool("Rock", false);
+                        animator.SetBool("Scissors", false);
+                        saveTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+                        animator.speed = 0;
+                    }
+                    break;
+            }
+        }
     }
 
     public class Rock : Janken
@@ -42,7 +84,7 @@ public class PlayerController : MonoBehaviour
         float coolTime = 0;
         AudioSource audio;
         Transform transform;
-        public Rock(AudioSource audio, Transform transform)
+        public Rock(AudioSource audio, Transform transform, Animator anim) : base(anim)
         {
             this.audio = audio;
             this.transform = transform;
@@ -67,16 +109,21 @@ public class PlayerController : MonoBehaviour
             }
             coolTime -= Time.deltaTime;
         }
+        public override void Animation(int num)
+        {
+            base.Animation(num);
+        }
     }
 
     public class Paper : Janken
     {
         Rigidbody rigid;
         float moveSpeed;
-        public Paper(Rigidbody rigidbody, float speed)
+        public Paper(Rigidbody rigidbody, float speed, Animator animator) : base(animator)
         {
             rigid = rigidbody;
             moveSpeed = speed;
+            this.animator = animator;
         }
         public override void HandEffect()
         {
@@ -101,17 +148,18 @@ public class PlayerController : MonoBehaviour
     public class Scissors : Janken
     {
         GimmickCon gimmickCon = null;
-        GameObject finger;
+        GameObject[] finger;
         RaycastHit hit;
         float lazerDistance = 10f;
-        LineRenderer lineRenderer;
-        MeshRenderer myRender;
+        LineRenderer[] lineRenderer;
+        SkinnedMeshRenderer myRender;
         float timer = 0;
-        public Scissors(LineRenderer line, GameObject FInger, MeshRenderer mesh)
+        public Scissors(LineRenderer[] line, GameObject[] FInger, SkinnedMeshRenderer mesh, Animator anim) : base(anim)
         {
             lineRenderer = line;
             finger = FInger;
             myRender = mesh;
+            animator = anim;
         }
         public override void HandEffect()
         {
@@ -119,32 +167,34 @@ public class PlayerController : MonoBehaviour
             if (stop) 
             {
                 gimmickCon.LightHit();
-                lineRenderer.enabled = false;
                 myRender.enabled = false;
                 return;
             }
-            // じゃんけん発動キーがjだと仮定して
+            // じゃんけん発動キーが左クリック
             if (Input.GetMouseButton(0))
             {
-                lineRenderer.enabled = true;
+                lineRenderer[0].enabled = true;
+                lineRenderer[1].enabled = true;
                 timer += Time.deltaTime;
                 if (timer > 0.5f) 
                 {
                     myRender.enabled = false;
                 }
-                Vector3 startPos = finger.transform.position;
+                Vector3 startPos = finger[0].transform.position;
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
 
                 Ray ray = new Ray(startPos, direction * lazerDistance);
-                lineRenderer.SetPosition(0, startPos);
+                lineRenderer[0].SetPosition(0, startPos);
+                lineRenderer[1].SetPosition(0, startPos);
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
 
                 if (Physics.Raycast(ray, out hit, lazerDistance))
                 {
                     if (!hit.collider.gameObject.CompareTag("Player"))
                     {
-                        lineRenderer.SetPosition(1, hit.point);
+                        lineRenderer[0].SetPosition(1, hit.point);
+                        lineRenderer[1].SetPosition(1, hit.point);
                         lazerDistance = Vector3.Distance(startPos, hit.point);
                         if (hit.collider.gameObject.CompareTag("LightGimmick"))
                         {
@@ -159,13 +209,13 @@ public class PlayerController : MonoBehaviour
                 else
                 {
                     lazerDistance = 10.0f;
-                    lineRenderer.SetPosition(1, endPos);
+                    lineRenderer[0].SetPosition(1, endPos);
+                    lineRenderer[1].SetPosition(1, endPos);
                 }
             }
             else
             {
                 lazerDistance = 10.0f;
-                lineRenderer.enabled = false;
                 if (!stop)
                 {
                     myRender.enabled = true;
@@ -180,10 +230,13 @@ public class PlayerController : MonoBehaviour
     {
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
-        lineRenderer = Finger.GetComponent<LineRenderer>();
-        jankens[0] = new Rock(audioSource,transform);
-        jankens[1] = new Scissors(lineRenderer, Finger, myMesh);
-        jankens[2] = new Paper(rigid, MoveSpeed);
+        for (int i = 0; i < lineRenderer.Length; i++)
+        {
+            lineRenderer[i] = Finger[i].GetComponent<LineRenderer>();
+        }
+        jankens[0] = new Rock(audioSource, transform, animator);
+        jankens[1] = new Scissors(lineRenderer, Finger, myMesh, animator);
+        jankens[2] = new Paper(rigid, MoveSpeed, animator);
     }
 
     // Update is called once per frame
@@ -221,10 +274,13 @@ public class PlayerController : MonoBehaviour
             }
         }
         jankens[select].HandEffect();
-
+        uIDirector.ChangeJankenUI(select);
         if (select != 1)
         {
-            lineRenderer.enabled = false;
+            for (int i = 0; i < lineRenderer.Length; i++)
+            {
+                lineRenderer[i].enabled = false;
+            }
         }
         if (select != 0)
         {
