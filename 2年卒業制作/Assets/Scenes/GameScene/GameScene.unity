@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.08207286, g: 0.07549543, b: 0.060041524, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -209,11 +209,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1567214948809150687, guid: 560febec0327e434eaf2048b7d061540, type: 3}
       propertyPath: m_VerticalAxis.m_InputAxisName
-      value: 
+      value: Mouse Y
       objectReference: {fileID: 0}
     - target: {fileID: 1567214948809150687, guid: 560febec0327e434eaf2048b7d061540, type: 3}
       propertyPath: m_HorizontalAxis.m_InputAxisName
-      value: 
+      value: Mouse X
       objectReference: {fileID: 0}
     - target: {fileID: 3782159897067568578, guid: 560febec0327e434eaf2048b7d061540, type: 3}
       propertyPath: m_Name
@@ -441,11 +441,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4592891727583888310, guid: 50acb551936294443819b65b202d84c3, type: 3}
       propertyPath: m_Constraints
-      value: 78
+      value: 64
       objectReference: {fileID: 0}
     - target: {fileID: 4592891727583888310, guid: 50acb551936294443819b65b202d84c3, type: 3}
       propertyPath: m_IsKinematic
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5632655871002700442, guid: 50acb551936294443819b65b202d84c3, type: 3}
       propertyPath: uIDirector
@@ -936,13 +936,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 771517160}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.10515728, y: -0.2572807, z: -0.028176803, w: 0.96018475}
+  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -12.5, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1001 &845124572
 PrefabInstance:
   m_ObjectHideFlags: 0

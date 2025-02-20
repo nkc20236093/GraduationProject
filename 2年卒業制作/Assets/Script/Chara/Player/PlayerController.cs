@@ -77,18 +77,8 @@ public class PlayerController : MonoBehaviour
             switch(num)
             {
                 case 0:
-                    if (isClick)
-                    {
-                        FadeSkinne(material); 
-                        break;
-                    }
                     break;
                 case 1:
-                    if (isClick)
-                    {
-                        FadeSkinne(material);
-                        break;
-                    }
                     break;
                 case 2:
                     if (Input.GetButton("Horizontal")|| Input.GetButton("Vertical")) 
@@ -102,15 +92,12 @@ public class PlayerController : MonoBehaviour
                             animator.SetFloat("speed", -1);
                         }
                         animator.SetBool("Paper", true);
-                        animator.SetBool("Rock", false);
-                        animator.SetBool("Scissors", false);
+                        animator.SetBool("Idle", false);
                     }
                     else
                     {
+                        animator.SetBool("Idle", true);
                         animator.SetBool("Paper", false);
-                        animator.SetBool("Rock", false);
-                        animator.SetBool("Scissors", false);
-                        animator.SetFloat("speed", 0);
                     }
                     break;
             }
