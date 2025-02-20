@@ -48,7 +48,162 @@ public class GimmickCon : MonoBehaviour
         protected bool rayHit = false;
         protected RaycastHit hit;
         protected Ray ray;
-        public virtual void Operation() 
+        public virtual void Operation() { }  
+    }
+    public class RedCable: originGimmick
+    {
+        public RedCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP)
+        {
+            myNumber = num;
+            colorLineRenderer = lineRenderer;
+            this.cables = cables;
+            firstPosition = first;
+            this.pillers = pillers;
+            correctPosUp = correctUP;
+            correctPosCenter = correctCenter;
+            gimmickCon = gimmick;
+        }
+        public override void Operation()
+        {
+            Debug.Log("あやとり" + ":" + colorTag[myNumber]);
+            // 仮にReturnキーを押したら終了
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                colorLineRenderer.enabled = false;
+                gimmickCon.lightHit = false;
+                first = false;
+            }
+            else
+            {
+                // 起動時に一回だけ実行
+                if (!first)
+                {
+                    for (int i = 0; i < cables.Length; i++)
+                    {
+                        if (!colorLineRenderer.enabled)
+                        {
+                            colorLineRenderer.enabled = true;
+                        }
+                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                        localEndPos = firstPosition[myNumber];
+                    }
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        points[i] = colorLineRenderer.GetPosition(i);
+                    }
+                    first = true;
+                }
+
+                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
+                {
+                    value++;
+                }
+                else if (Input.GetMouseButton(0))
+                {
+                    value--;
+                }
+                value = Mathf.Clamp(value, -900, 900);
+                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
+                //Debug.Log(value - localHitPoint.x + ":" + rayHit);
+
+                Vector3 startPos = colorLineRenderer.GetPosition(0);
+                Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
+                localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
+                Vector3 direction = (localEndPos - localStartPos).normalized;
+                ray = new Ray(localStartPos, direction);
+                Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+                // Rayがヒットした座標をローカル座標に変換して追加
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
+                {
+                    if (!rayHit)
+                    {
+                        Debug.Log(hit.collider.gameObject.name);
+                    }
+                    rayHit = true;
+                    points = new Vector3[colorLineRenderer.positionCount + 1];
+                    points[0] = startPos;
+                    // ヒットした座標をローカル座標に変換
+                    if (hit.collider != null && hit.collider.gameObject.CompareTag(colorTag[myNumber]))
+                    {
+                        Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
+                        localHitPoint = new Vector3(pos.x, pos.y, 0);
+                    }
+                    points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
+                    points[2] = new Vector3(value, 150, 0);
+                    counts = 3;
+                    // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
+                    // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
+                    if (localHitPoint.x > colorLineRenderer.GetPosition(0).x)
+                    {
+                        if ((localHitPoint.x - value) > 15)
+                        {
+                            Debug.Log("大きい");
+                            rayHit = false;
+                        }
+                    }
+                    // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より小さい(左にある)時は
+                    // value(一番上)-localHitPoint.x(中点)の差が15㎝以下だったらfalse
+                    else if (localHitPoint.x < colorLineRenderer.GetPosition(0).x)
+                    {
+                        if ((value - localHitPoint.x) > 15)
+                        {
+                            Debug.Log("小さい");
+                            rayHit = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (localHitPoint != Vector3.zero && rayHit)
+                    {
+                        points = new Vector3[colorLineRenderer.positionCount + 1];
+                        points[0] = startPos;
+                        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
+                        points[2] = new Vector3(value, 150, 0);
+                        counts = 3;
+                    }
+                    else
+                    {
+                        points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                        counts = 2;
+                    }
+                }
+                colorLineRenderer.positionCount = counts;
+                colorLineRenderer.SetPositions(points);
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                if (centerDistance <= 10 && UpDistance <= 10)
+                {
+                    Debug.Log("赤OK");
+                    gimmickCon.gimmickClears[myNumber] = true;
+                }
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10) 
+                {
+                    //Debug.Log(Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) + ":" + Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosCenter));
+                    Debug.Log("赤NG");
+                    gimmickCon.gimmickClears[myNumber] = false;
+                }
+                return;
+            }
+        }
+    }
+
+    public class GreenCable : originGimmick
+    {
+        public GreenCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP)
+        {
+            myNumber = num;
+            colorLineRenderer = lineRenderer;
+            this.cables = cables;
+            firstPosition = first;
+            this.pillers = pillers;
+            correctPosCenter = correctUP;
+            correctPosCenter = correctCenter;
+            gimmickCon = gimmick;
+        }
+        public override void Operation()
         {
             Debug.Log("あやとり" + ":" + colorTag[myNumber]);
             // 仮にReturnキーを押したら終了
@@ -153,270 +308,21 @@ public class GimmickCon : MonoBehaviour
                 }
                 colorLineRenderer.positionCount = counts;
                 colorLineRenderer.SetPositions(points);
-                if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                if (centerDistance <= 10 && UpDistance <= 10)
                 {
                     Debug.Log("赤OK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
+                {
+                    //Debug.Log(Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) + ":" + Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosCenter));
+                    Debug.Log("赤NG");
+                    gimmickCon.gimmickClears[myNumber] = false;
+                }
                 return;
             }
-        }
-    }
-    public class RedCable: originGimmick
-    {
-        public RedCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP)
-        {
-            myNumber = num;
-            colorLineRenderer = lineRenderer;
-            this.cables = cables;
-            firstPosition = first;
-            this.pillers = pillers;
-            correctPosCenter = correctUP;
-            correctPosCenter = correctCenter;
-            gimmickCon = gimmick;
-        }
-        public override void Operation()
-        {
-            base.Operation();
-            //Debug.Log("あやとり" + ":" + colorTag[myNumber]);
-            //// 仮にReturnキーを押したら終了
-            //if (Input.GetKeyDown(KeyCode.Return))
-            //{
-            //    colorLineRenderer.enabled = false;
-            //    gimmickCon.lightHit = false;
-            //    first = false;
-            //}
-            //else
-            //{
-            //    // 起動時に一回だけ実行
-            //    if (!first)
-            //    {
-            //        for (int i = 0; i < cables.Length; i++)
-            //        {
-            //            if (!colorLineRenderer.enabled)
-            //            {
-            //                colorLineRenderer.enabled = true;
-            //            }
-            //            colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-            //            localEndPos = firstPosition[myNumber];
-            //        }
-            //        for (int i = 0; i < points.Length; i++)
-            //        {
-            //            points[i] = colorLineRenderer.GetPosition(i);
-            //        }
-            //        first = true;
-            //    }
-
-            //    float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-            //    // マウスの左右のクリックで動かす
-            //    if (Input.GetMouseButton(1))
-            //    {
-            //        value++;
-            //    }
-            //    else if (Input.GetMouseButton(0))
-            //    {
-            //        value--;
-            //    }
-            //    value = Mathf.Clamp(value, -100, 100);
-            //    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-            //    //Debug.Log(value - localHitPoint.x + ":" + rayHit);
-
-            //    Vector3 startPos = colorLineRenderer.GetPosition(0);
-            //    Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-            //    localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-            //    Vector3 direction = (localEndPos - localStartPos).normalized;
-            //    ray = new Ray(localStartPos, direction);
-            //    Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
-            //    // Rayがヒットした座標をローカル座標に変換して追加
-            //    if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
-            //    {
-            //        rayHit = true;
-            //        points = new Vector3[colorLineRenderer.positionCount + 1];
-            //        points[0] = startPos;
-            //        // ヒットした座標をローカル座標に変換
-            //        if (hit.collider != null && hit.collider.gameObject.CompareTag(colorTag[myNumber])) 
-            //        {
-            //            Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
-            //            localHitPoint = new Vector3(pos.x, pos.y, 0);
-            //        }
-            //        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //        points[2] = new Vector3(value, 150, 0);
-            //        counts = 3;
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
-            //        // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
-            //        if (localHitPoint.x > colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((localHitPoint.x - value) > 15)
-            //            {
-            //                Debug.Log("大きい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より小さい(左にある)時は
-            //        // value(一番上)-localHitPoint.x(中点)の差が15㎝以下だったらfalse
-            //        else if (localHitPoint.x < colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((value - localHitPoint.x) > 15)
-            //            {
-            //                Debug.Log("小さい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (localHitPoint != Vector3.zero && rayHit)
-            //        {
-            //            points = new Vector3[colorLineRenderer.positionCount + 1];
-            //            points[0] = startPos;
-            //            points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //            points[2] = new Vector3(value, 150, 0);
-            //            counts = 3;
-            //        }
-            //        else
-            //        {
-            //            points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
-            //            counts = 2;
-            //        }
-            //    }
-            //    colorLineRenderer.positionCount = counts;
-            //    colorLineRenderer.SetPositions(points);
-            //    if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)
-            //    {
-            //        Debug.Log("赤OK");
-            //        gimmickCon.gimmickClears[myNumber] = true;
-            //    }
-            //    return;
-            //}
-        }
-    }
-
-    public class GreenCable : originGimmick
-    {
-        public GreenCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP)
-        {
-            myNumber = num;
-            colorLineRenderer = lineRenderer;
-            this.cables = cables;
-            firstPosition = first;
-            this.pillers = pillers;
-            correctPosCenter = correctUP;
-            correctPosCenter = correctCenter;
-            gimmickCon = gimmick;
-        }
-        public override void Operation()
-        {
-            base.Operation();
-            //Debug.Log("あやとり" + ":" + colorTag[myNumber]);
-            //// 仮にReturnキーを押したら終了
-            //if (Input.GetKeyDown(KeyCode.Return))
-            //{
-            //    colorLineRenderer.enabled = false;
-            //    gimmickCon.lightHit = false;
-            //    first = false;
-            //}
-            //else
-            //{
-            //    // 起動時に一回だけ実行
-            //    if (!first)
-            //    {
-            //        for (int i = 0; i < cables.Length; i++)
-            //        {
-            //            if (!colorLineRenderer.enabled)
-            //            {
-            //                colorLineRenderer.enabled = true;
-            //            }
-            //            colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-            //            localEndPos = firstPosition[myNumber];
-            //        }
-            //        for (int i = 0; i < points.Length; i++)
-            //        {
-            //            points[i] = colorLineRenderer.GetPosition(i);
-            //        }
-            //        first = true;
-            //    }
-
-            //    float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-            //    // マウスの左右のクリックで動かす
-            //    if (Input.GetMouseButton(1))
-            //    {
-            //        value++;
-            //    }
-            //    else if (Input.GetMouseButton(0))
-            //    {
-            //        value--;
-            //    }
-            //    value = Mathf.Clamp(value, -100, 100);
-            //    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-            //    //Debug.Log(value - localHitPoint.x + ":" + rayHit);
-
-            //    Vector3 startPos = colorLineRenderer.GetPosition(0);
-            //    Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-            //    localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-            //    Vector3 direction = (localEndPos - localStartPos).normalized;
-            //    ray = new Ray(localStartPos, direction);
-            //    Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
-            //    // Rayがヒットした座標をローカル座標に変換して追加
-            //    if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
-            //    {
-            //        rayHit = true;
-            //        points = new Vector3[colorLineRenderer.positionCount + 1];
-            //        points[0] = startPos;
-            //        // ヒットした座標をローカル座標に変換
-            //        if (hit.collider != null && hit.collider.gameObject.CompareTag(colorTag[myNumber]))
-            //        {
-            //            Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
-            //            localHitPoint = new Vector3(pos.x, pos.y, 0);
-            //        }
-            //        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //        points[2] = new Vector3(value, 150, 0);
-            //        counts = 3;
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
-            //        // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
-            //        if (localHitPoint.x > colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((localHitPoint.x - value) > 15)
-            //            {
-            //                Debug.Log("大きい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より小さい(左にある)時は
-            //        // value(一番上)-localHitPoint.x(中点)の差が15㎝以下だったらfalse
-            //        else if (localHitPoint.x < colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((value - localHitPoint.x) > 15)
-            //            {
-            //                Debug.Log("小さい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (localHitPoint != Vector3.zero && rayHit)
-            //        {
-            //            points = new Vector3[colorLineRenderer.positionCount + 1];
-            //            points[0] = startPos;
-            //            points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //            points[2] = new Vector3(value, 150, 0);
-            //            counts = 3;
-            //        }
-            //        else
-            //        {
-            //            points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
-            //            counts = 2;
-            //        }
-            //    }
-            //    colorLineRenderer.positionCount = counts;
-            //    colorLineRenderer.SetPositions(points);
-            //    if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)
-            //    {
-            //        Debug.Log("緑OK");
-            //        gimmickCon.gimmickClears[myNumber] = true;
-            //    }
-            //    return;
-            //}
         }
     }
     public class CyanCable : originGimmick
@@ -434,117 +340,124 @@ public class GimmickCon : MonoBehaviour
         }
         public override void Operation()
         {
-            base.Operation();
-            //Debug.Log("あやとり" + ":" + colorTag[myNumber]);
-            //// 仮にReturnキーを押したら終了
-            //if (Input.GetKeyDown(KeyCode.Return))
-            //{
-            //    colorLineRenderer.enabled = false;
-            //    gimmickCon.lightHit = false;
-            //    first = false;
-            //}
-            //else
-            //{
-            //    // 起動時に一回だけ実行
-            //    if (!first)
-            //    {
-            //        for (int i = 0; i < cables.Length; i++)
-            //        {
-            //            if (!colorLineRenderer.enabled)
-            //            {
-            //                colorLineRenderer.enabled = true;
-            //            }
-            //            colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-            //            localEndPos = firstPosition[myNumber];
-            //        }
-            //        for (int i = 0; i < points.Length; i++)
-            //        {
-            //            points[i] = colorLineRenderer.GetPosition(i);
-            //        }
-            //        first = true;
-            //    }
+            Debug.Log("あやとり" + ":" + colorTag[myNumber]);
+            // 仮にReturnキーを押したら終了
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                colorLineRenderer.enabled = false;
+                gimmickCon.lightHit = false;
+                first = false;
+            }
+            else
+            {
+                // 起動時に一回だけ実行
+                if (!first)
+                {
+                    for (int i = 0; i < cables.Length; i++)
+                    {
+                        if (!colorLineRenderer.enabled)
+                        {
+                            colorLineRenderer.enabled = true;
+                        }
+                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                        localEndPos = firstPosition[myNumber];
+                    }
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        points[i] = colorLineRenderer.GetPosition(i);
+                    }
+                    first = true;
+                }
 
-            //    float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-            //    // マウスの左右のクリックで動かす
-            //    if (Input.GetMouseButton(1))
-            //    {
-            //        value++;
-            //    }
-            //    else if (Input.GetMouseButton(0))
-            //    {
-            //        value--;
-            //    }
-            //    value = Mathf.Clamp(value, -100, 100);
-            //    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-            //    //Debug.Log(value - localHitPoint.x + ":" + rayHit);
+                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
+                {
+                    value++;
+                }
+                else if (Input.GetMouseButton(0))
+                {
+                    value--;
+                }
+                value = Mathf.Clamp(value, -100, 100);
+                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
+                //Debug.Log(value - localHitPoint.x + ":" + rayHit);
 
-            //    Vector3 startPos = colorLineRenderer.GetPosition(0);
-            //    Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-            //    localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-            //    Vector3 direction = (localEndPos - localStartPos).normalized;
-            //    ray = new Ray(localStartPos, direction);
-            //    Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
-            //    // Rayがヒットした座標をローカル座標に変換して追加
-            //    if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
-            //    {
-            //        rayHit = true;
-            //        points = new Vector3[colorLineRenderer.positionCount + 1];
-            //        points[0] = startPos;
-            //        // ヒットした座標をローカル座標に変換
-            //        if (hit.collider != null && hit.collider.gameObject.CompareTag(colorTag[myNumber]))
-            //        {
-            //            Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
-            //            localHitPoint = new Vector3(pos.x, pos.y, 0);
-            //        }
-            //        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //        points[2] = new Vector3(value, 150, 0);
-            //        counts = 3;
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
-            //        // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
-            //        if (localHitPoint.x > colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((localHitPoint.x - value) > 15)
-            //            {
-            //                Debug.Log("大きい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //        // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より小さい(左にある)時は
-            //        // value(一番上)-localHitPoint.x(中点)の差が15㎝以下だったらfalse
-            //        else if (localHitPoint.x < colorLineRenderer.GetPosition(0).x)
-            //        {
-            //            if ((value - localHitPoint.x) > 15)
-            //            {
-            //                Debug.Log("小さい");
-            //                rayHit = false;
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (localHitPoint != Vector3.zero && rayHit)
-            //        {
-            //            points = new Vector3[colorLineRenderer.positionCount + 1];
-            //            points[0] = startPos;
-            //            points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-            //            points[2] = new Vector3(value, 150, 0);
-            //            counts = 3;
-            //        }
-            //        else
-            //        {
-            //            points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
-            //            counts = 2;
-            //        }
-            //    }
-            //    colorLineRenderer.positionCount = counts;
-            //    colorLineRenderer.SetPositions(points);
-            //    if (Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5 && Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter) <= 5)  
-            //    {
-            //        Debug.Log("紫OK");
-            //        gimmickCon.gimmickClears[myNumber] = true;
-            //    }
-            //    return;
-            //}
+                Vector3 startPos = colorLineRenderer.GetPosition(0);
+                Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
+                localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
+                Vector3 direction = (localEndPos - localStartPos).normalized;
+                ray = new Ray(localStartPos, direction);
+                Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+                // Rayがヒットした座標をローカル座標に変換して追加
+                if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
+                {
+                    rayHit = true;
+                    points = new Vector3[colorLineRenderer.positionCount + 1];
+                    points[0] = startPos;
+                    // ヒットした座標をローカル座標に変換
+                    if (hit.collider != null && hit.collider.gameObject.CompareTag(colorTag[myNumber]))
+                    {
+                        Vector3 pos = hit.collider.GetComponent<RectTransform>().anchoredPosition;
+                        localHitPoint = new Vector3(pos.x, pos.y, 0);
+                    }
+                    points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
+                    points[2] = new Vector3(value, 150, 0);
+                    counts = 3;
+                    // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
+                    // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
+                    if (localHitPoint.x > colorLineRenderer.GetPosition(0).x)
+                    {
+                        if ((localHitPoint.x - value) > 15)
+                        {
+                            Debug.Log("大きい");
+                            rayHit = false;
+                        }
+                    }
+                    // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より小さい(左にある)時は
+                    // value(一番上)-localHitPoint.x(中点)の差が15㎝以下だったらfalse
+                    else if (localHitPoint.x < colorLineRenderer.GetPosition(0).x)
+                    {
+                        if ((value - localHitPoint.x) > 15)
+                        {
+                            Debug.Log("小さい");
+                            rayHit = false;
+                        }
+                    }
+                }
+                else
+                {
+                    if (localHitPoint != Vector3.zero && rayHit)
+                    {
+                        points = new Vector3[colorLineRenderer.positionCount + 1];
+                        points[0] = startPos;
+                        points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
+                        points[2] = new Vector3(value, 150, 0);
+                        counts = 3;
+                    }
+                    else
+                    {
+                        points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                        counts = 2;
+                    }
+                }
+                colorLineRenderer.positionCount = counts;
+                colorLineRenderer.SetPositions(points);
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                if (centerDistance <= 10 && UpDistance <= 10)
+                {
+                    Debug.Log("赤OK");
+                    gimmickCon.gimmickClears[myNumber] = true;
+                }
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
+                {
+                    //Debug.Log(Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) + ":" + Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosCenter));
+                    Debug.Log("赤NG");
+                    gimmickCon.gimmickClears[myNumber] = false;
+                }
+                return;
+            }
         }
     }
     // Start is called before the first frame update

@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 882996369978443184}
   - component: {fileID: 6720218356083571670}
   - component: {fileID: 6046808859435720854}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SwitchBoard
-  m_TagString: LightGimmick
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78d69f78a6c72354db541d1c250c446b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorNumber: 0
+  myGimmickNumber: 1
   pillers:
   - {fileID: 0}
   - {fileID: 0}

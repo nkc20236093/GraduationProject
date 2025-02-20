@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
 
     Rigidbody rigid;
 
+    Vector3 nowPos;
     float damageHealingTime = 0;
     bool performance = false;
     public int hitCount = 0;
@@ -168,7 +169,7 @@ public class PlayerController : MonoBehaviour
 
             Vector3 moveDirection = new Vector3(horizontalInput, 0, verticalInput).normalized;
 
-            if (moveDirection != Vector3.zero)
+            if (moveDirection != Vector3.zero && !stop)
             {
                 float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg + Camera.main.transform.eulerAngles.y;
                 Vector3 moveDir = Quaternion.Euler(0, targetAngle, 0) * Vector3.forward;
@@ -228,7 +229,6 @@ public class PlayerController : MonoBehaviour
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
                 if (Physics.Raycast(ray, out hit, lazerDistance, LayerMask.GetMask("LightGimmick")))
                 {
-                    Debug.Log(hit.collider.gameObject);
                     lineRenderer.SetPosition(1, hit.point);
                     lazerDistance = Vector3.Distance(startPos, hit.point);
                     // ÉqÉbÉgÇµÇΩÇÁçÏìÆ
@@ -321,6 +321,10 @@ public class PlayerController : MonoBehaviour
     {
         if (stop)
         {
+            if (!performance)
+            {
+                rigid.isKinematic = true;
+            }
             mPov.m_HorizontalAxis.m_InputAxisName = "";
             mPov.m_HorizontalAxis.m_InputAxisValue = 0;
             mPov.m_VerticalAxis.m_InputAxisName = "";
@@ -329,6 +333,10 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            if (!performance)
+            {
+                rigid.isKinematic = false;
+            }
             mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
         }
