@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameDirector : MonoBehaviour
 {
@@ -11,11 +12,14 @@ public class GameDirector : MonoBehaviour
     [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
+    [SerializeField] Image[] images;
+    public Image image;
     bool oneAction = false;
     // Start is called before the first frame update
     void Start()
     {
-        Cursor.visible = false;
+        int i = Random.Range(0, 2);
+        image = images[i];
     }
 
     // Update is called once per frame
