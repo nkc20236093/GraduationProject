@@ -8,6 +8,9 @@ public class GimmickCon : MonoBehaviour
 {
     originGimmick[] originGimmicks = new originGimmick[3];
 
+    [Header("å©ÇΩñ⁄ópÉÇÉfÉã")]
+    [SerializeField] MeshRenderer modelMesh;
+
     [Header("é©ï™Ç™âΩî‘ñ⁄ÇÃçUó™Ç≥ÇÍÇÈî‘çÜÇ©")] 
     [SerializeField] int myGimmickNumber = 1;
 
@@ -312,13 +315,13 @@ public class GimmickCon : MonoBehaviour
                 float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
                 if (centerDistance <= 10 && UpDistance <= 10)
                 {
-                    Debug.Log("ê‘OK");
+                    Debug.Log("óŒOK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
                 else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
                 {
                     //Debug.Log(Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) + ":" + Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosCenter));
-                    Debug.Log("ê‘NG");
+                    Debug.Log("óŒNG");
                     gimmickCon.gimmickClears[myNumber] = false;
                 }
                 return;
@@ -447,13 +450,13 @@ public class GimmickCon : MonoBehaviour
                 float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
                 if (centerDistance <= 10 && UpDistance <= 10)
                 {
-                    Debug.Log("ê‘OK");
+                    Debug.Log("éáOK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
                 else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
                 {
                     //Debug.Log(Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) + ":" + Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosCenter));
-                    Debug.Log("ê‘NG");
+                    Debug.Log("éáNG");
                     gimmickCon.gimmickClears[myNumber] = false;
                 }
                 return;
@@ -488,6 +491,7 @@ public class GimmickCon : MonoBehaviour
         {
             if (!OneAction)
             {
+                modelMesh.enabled = true;
                 for (int i = 0; i < cables.Length; i++)
                 {
                     cables[i].enabled = true;
@@ -514,6 +518,7 @@ public class GimmickCon : MonoBehaviour
         {
             if (OneAction)
             {
+                modelMesh.enabled = false;
                 for (int i = 0; i < cables.Length; i++)
                 {
                     cables[i].enabled = false;

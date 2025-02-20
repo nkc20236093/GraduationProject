@@ -29,9 +29,9 @@ public class PlayerController : MonoBehaviour
 
     Rigidbody rigid;
 
-    Vector3 nowPos;
     float damageHealingTime = 0;
     bool performance = false;
+    bool dead = false;
     public int hitCount = 0;
     public static bool stop = false;
 
@@ -41,6 +41,8 @@ public class PlayerController : MonoBehaviour
         bool isFade = false;
         protected bool isClick = false;
         protected Animator animator;
+        protected SkinnedMeshRenderer modelRender;
+        protected float timer = 0;
         public Janken(Animator animator)
         {
             this.animator = animator;
@@ -120,13 +122,19 @@ public class PlayerController : MonoBehaviour
         float coolTime = 0;
         AudioSource audio;
         Transform transform;
-        public Rock(AudioSource audio, Transform transform, Animator anim) : base(anim)
+        public Rock(AudioSource audio, Transform transform, Animator anim, SkinnedMeshRenderer mesh) : base(anim)
         {
             this.audio = audio;
             this.transform = transform;
+            modelRender = mesh;
         }
         public override void HandEffect()
         {
+            timer += Time.deltaTime;
+            if (timer > 0.5f)
+            {
+                FadeSkinne(modelRender.material);
+            }
             // じゃんけん発動キーが左クリックだと仮定して
             if (Input.GetMouseButtonDown(0) && coolTime < 0)
             {
@@ -193,8 +201,6 @@ public class PlayerController : MonoBehaviour
         RaycastHit hit;
         float lazerDistance = 10f;
         LineRenderer lineRenderer;
-        SkinnedMeshRenderer modelRender;
-        float timer = 0;
         public Scissors(LineRenderer line, GameObject FInger, SkinnedMeshRenderer mesh, Animator anim) : base(anim)
         {
             lineRenderer = line;
@@ -204,10 +210,11 @@ public class PlayerController : MonoBehaviour
         }
         public override void HandEffect()
         {
-            if (stop) 
+            if (stop)
             {
                 gimmickCon.LightHit();
                 modelRender.enabled = false;
+                lineRenderer.enabled = false;
                 return;
             }
             // じゃんけん発動キーが左クリック
@@ -220,7 +227,7 @@ public class PlayerController : MonoBehaviour
                     FadeSkinne(modelRender.material);
                 }
 
-                Vector3 startPos = lineRenderer.transform.TransformPoint(finger.transform.position);
+                Vector3 startPos = finger.transform.TransformPoint(finger.transform.position);
                 Vector3 endPos = Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
 
@@ -261,7 +268,7 @@ public class PlayerController : MonoBehaviour
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
-        jankens[0] = new Rock(audioSource, transform, animator);
+        jankens[0] = new Rock(audioSource, transform, animator, myMesh);
         jankens[1] = new Scissors(lineRenderer, Finger, myMesh, animator);
         jankens[2] = new Paper(rigid, MoveSpeed, animator);
     }
@@ -321,7 +328,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stop)
         {
-            if (!performance)
+            if (!dead)
             {
                 rigid.isKinematic = true;
             }
@@ -333,14 +340,14 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (!performance)
+            if (!dead)
             {
-                rigid.isKinematic = false;
+                rigid.isKinematic = true;
             }
+            rigid.isKinematic = false;
             mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
         }
-
         if (Input.GetKeyDown(KeyCode.R))
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -378,10 +385,11 @@ public class PlayerController : MonoBehaviour
         transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.75f;
         rigid.velocity = Vector3.zero;
         float timer = 0;
+        stop = true;
+        dead = true;
         while (!performance)
         {
             // ここに死亡演出
-            stop = true;
             rigid.useGravity = false;
             virtualCamera.enabled = false;
             timer += Time.deltaTime;

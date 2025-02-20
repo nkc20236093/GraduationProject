@@ -13,7 +13,7 @@ public class UIDirector : MonoBehaviour
     };
     [SerializeField] TutorialDirector tutorialDirector;
     [SerializeField] Image DamageImg;
-    [SerializeField] Text describeText;
+    [SerializeField] Text gameText;
     [SerializeField] Sprite[] JankenUIs = new Sprite[3];
     [SerializeField] Image JankenUI;
     void Start()
@@ -41,19 +41,19 @@ public class UIDirector : MonoBehaviour
     }
     IEnumerator Tutorial(bool stop)
     {
-        describeText.enabled = true;
+        gameText.enabled = true;
         while (!stop)
         {
             for (int i = 0; i < tutorialDirector.tutorialFlags.Length; i++)
             {
                 if (tutorialDirector.AllConditionsTrue())
                 {
-                    describeText.enabled = false;
+                    gameText.enabled = false;
                     yield break;
                 }
                 else if (!tutorialDirector.tutorialFlags[i])
                 {
-                    describeText.text = tutorialDirector.text;
+                    gameText.text = tutorialDirector.text;
                     yield return null;
                 }
             }

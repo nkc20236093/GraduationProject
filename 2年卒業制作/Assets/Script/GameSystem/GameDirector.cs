@@ -12,14 +12,14 @@ public class GameDirector : MonoBehaviour
     [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
-    [SerializeField] Image[] images;
-    public Image image;
+    [SerializeField] Image[] gimmickImages;
+    public Image gimmickImage;
     bool oneAction = false;
     // Start is called before the first frame update
     void Start()
     {
-        int i = Random.Range(0, 2);
-        image = images[i];
+        //int i = Random.Range(0, 2);
+        //gimmickImage = gimmickImages[i];
     }
 
     // Update is called once per frame
