@@ -13,6 +13,8 @@ public class GameDirector : MonoBehaviour
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
     [SerializeField] Image[] gimmickImages;
+    [SerializeField] GameObject Exit;
+    [SerializeField] GameObject TutorialExit;
     public Image gimmickImage;
     bool oneAction = false;
     // Start is called before the first frame update
@@ -35,6 +37,18 @@ public class GameDirector : MonoBehaviour
         {
             audioSource.clip = clips[0];
             audioSource.Play();
+        }
+        for(int i = 0; i < gimmickClearFlags.Length; i++)
+        {
+            switch(i)
+            {
+                case 0:
+                    Destroy(TutorialExit);
+                    break;
+                case 1:
+                    Exit.tag = "Exit";
+                    break;
+            }
         }
     }
     public void GimmickEvent(int number)
