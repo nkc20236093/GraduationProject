@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Animator animator;
     [SerializeField] CinemachineVirtualCamera virtualCamera;
     CinemachinePOV mPov;
+    CinemachineTransposer mTransposer;
 
     Rigidbody rigid;
 
@@ -37,8 +38,6 @@ public class PlayerController : MonoBehaviour
 
     public class Janken
     {
-        const float fadeTime = 1 / 3;
-        bool isFade = false;
         protected bool isClick = false;
         protected Animator animator;
         protected SkinnedMeshRenderer modelRender;
@@ -46,22 +45,6 @@ public class PlayerController : MonoBehaviour
         public Janken(Animator animator)
         {
             this.animator = animator;
-        }
-        protected void FadeSkinne(Material material)
-        {
-            Color firstColor = material.color;
-            Color tarthetColor = isFade ? new Color(firstColor.r, firstColor.g, firstColor.b, 1.0f) : new Color(firstColor.r, firstColor.g, firstColor.b, 0.0f);
-            float nowTime = 0;
-            if (nowTime < fadeTime) 
-            {
-                nowTime += Time.deltaTime;
-                float t = nowTime / fadeTime;
-                material.color = Color.Lerp(firstColor, tarthetColor, t);
-            }
-            else
-            {
-                isFade = !isFade;
-            }
         }
         public virtual void HandEffect() { }
         public virtual void Animation(int num, Material material) 
@@ -118,10 +101,7 @@ public class PlayerController : MonoBehaviour
         public override void HandEffect()
         {
             timer += Time.deltaTime;
-            if (timer > 0.5f)
-            {
-                FadeSkinne(modelRender.material);
-            }
+            modelRender.enabled = false;
             // じゃんけん発動キーが左クリックだと仮定して
             if (Input.GetMouseButtonDown(0) && coolTime < 0)
             {
@@ -149,16 +129,17 @@ public class PlayerController : MonoBehaviour
     {
         Rigidbody rigid;
         float moveSpeed;
-        public Paper(Rigidbody rigidbody, float speed, Animator animator) : base(animator)
+        public Paper(Rigidbody rigidbody, float speed, Animator animator, SkinnedMeshRenderer skinned) : base(animator)
         {
             rigid = rigidbody;
             moveSpeed = speed;
             this.animator = animator;
+            modelRender = skinned;
         }
         public override void HandEffect()
         {
+            modelRender.enabled = true;
             if (stop) return;
-
             float horizontalInput = Input.GetAxisRaw("Horizontal");
             float verticalInput = Input.GetAxisRaw("Vertical");
 
@@ -208,20 +189,16 @@ public class PlayerController : MonoBehaviour
             if (Input.GetMouseButton(0))
             {
                 lineRenderer.enabled = true;
-                timer += Time.deltaTime;
-                if (timer > 0.5f) 
-                {
-                    FadeSkinne(modelRender.material);
-                }
+                modelRender.enabled = false;
 
-                Vector3 startPos = finger.transform.TransformPoint(finger.transform.position);
-                Vector3 endPos = Camera.main.transform.forward * lazerDistance;
+                Vector3 startPos = (finger.transform.position);
+                Vector3 endPos = Camera.main.transform.position + Camera.main.transform.forward * lazerDistance;
                 Vector3 direction = endPos - startPos;
 
                 Ray ray = new Ray(startPos, direction * lazerDistance);
                 lineRenderer.SetPosition(0, startPos);
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
-                if (Physics.Raycast(ray, out hit, lazerDistance, LayerMask.GetMask("LightGimmick")))
+                if (Physics.Raycast(ray, out hit, lazerDistance) && hit.collider.gameObject.CompareTag("LightGimmick")) 
                 {
                     lineRenderer.SetPosition(1, hit.point);
                     lazerDistance = Vector3.Distance(startPos, hit.point);
@@ -253,11 +230,12 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         mPov = virtualCamera.GetCinemachineComponent<CinemachinePOV>();
+        mTransposer = virtualCamera.GetCinemachineComponent<CinemachineTransposer>();
         rigid = GetComponent<Rigidbody>();
         lineRenderer = Finger.GetComponent<LineRenderer>();
         jankens[0] = new Rock(audioSource, transform, animator, myMesh);
         jankens[1] = new Scissors(lineRenderer, Finger, myMesh, animator);
-        jankens[2] = new Paper(rigid, MoveSpeed, animator);
+        jankens[2] = new Paper(rigid, MoveSpeed, animator, myMesh);
     }
 
     // Update is called once per frame
@@ -301,6 +279,15 @@ public class PlayerController : MonoBehaviour
         {
             lineRenderer.enabled = false;
         }
+        if (select != 2)
+        {
+            mTransposer.m_FollowOffset = new Vector3(0, 0.4f, 0);
+        }
+        else
+        {
+            mTransposer.m_FollowOffset = new Vector3(0, 0.4f, -0.75f);
+        }
+
         if (select != 0)
         {
             cylinder.enabled = false;
@@ -315,6 +302,7 @@ public class PlayerController : MonoBehaviour
     {
         if (stop)
         {
+            myMesh.enabled = true;
             if (!dead)
             {
                 rigid.isKinematic = true;

@@ -12,16 +12,13 @@ public class GameDirector : MonoBehaviour
     [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
-    [SerializeField] Image[] gimmickImages;
     [SerializeField] GameObject Exit;
     [SerializeField] GameObject TutorialExit;
-    public Image gimmickImage;
     bool oneAction = false;
     // Start is called before the first frame update
     void Start()
     {
-        //int i = Random.Range(0, 2);
-        //gimmickImage = gimmickImages[i];
+
     }
 
     // Update is called once per frame
@@ -40,14 +37,20 @@ public class GameDirector : MonoBehaviour
         }
         for(int i = 0; i < gimmickClearFlags.Length; i++)
         {
-            switch(i)
+            if (gimmickClearFlags[i])
             {
-                case 0:
-                    Destroy(TutorialExit);
-                    break;
-                case 1:
-                    Exit.tag = "Exit";
-                    break;
+                switch (i)
+                {
+                    case 0:
+                        Destroy(TutorialExit);
+                        break;
+                    case 1:
+                        Exit.tag = "Exit";
+                        break;
+                    case 2:
+
+                        break;
+                }
             }
         }
     }

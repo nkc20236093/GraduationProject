@@ -10,6 +10,7 @@ public class TutorialDirector : MonoBehaviour
     bool tutorialEnd = false;
     bool tutorialRunning = false;
     public string text;
+    GameDirector gameDirector;
     [SerializeField] PlayerController playerController;
     [SerializeField] UIDirector uIDirector;
     public class tutorialOrigin
@@ -96,7 +97,7 @@ public class TutorialDirector : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
+        gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         tutorialOrigins[0] = new jankenTutorialRock(0, uIDirector, this, playerController);
         tutorialOrigins[1] = new jankenTutorialPaper(1, uIDirector, this, playerController);
         tutorialOrigins[2] = new jankenTutorialScissors(2, uIDirector, this, playerController);
@@ -107,13 +108,9 @@ public class TutorialDirector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (gameDirector.gimmickClearFlags[0])
         {
-            StopCoroutine(TutorialCor(0));
-        }
-        if (tutorialEnd)
-        {
-            // Ç±Ç±Ç≈ç≈èâÇÃÉGÉäÉAÇÃî‡ÇäJÇØÇÈ
+            tutorialEnd = true;
         }
     }
     IEnumerator TutorialCor(int count)
