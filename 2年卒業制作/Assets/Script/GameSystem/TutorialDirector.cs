@@ -110,6 +110,7 @@ public class TutorialDirector : MonoBehaviour
     {
         if (gameDirector.gimmickClearFlags[0])
         {
+            text = "";
             tutorialEnd = true;
         }
     }

@@ -20,7 +20,8 @@ public class GimmickCon : MonoBehaviour
     [SerializeField] GameObject[] cableObj;
     [SerializeField] Vector3[] cablePos = new Vector3[3];
     [SerializeField] LineRenderer[] cables;
-
+    [SerializeField] Material[] lineMaterialLuminescence = new Material[3];
+    [SerializeField] Material[] lineMaterial = new Material[3];
     [Header("最初の位置、リセットするたびに設定\n下の位置とする")]
     [SerializeField] Vector3[] firstSetPosition;
 
@@ -520,13 +521,22 @@ public class GimmickCon : MonoBehaviour
                 OneAction = true;
             }
             // マウスのホイールで変更
-            if (Input.mouseScrollDelta.y > 0)
+            float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+            if (scrollInput > 0)
             {
-                colorNumber++;
+                colorNumber = (colorNumber + 1) % 3;
             }
-            else if (Input.mouseScrollDelta.y < 0)
+            else if (scrollInput < 0)
             {
-                colorNumber--;
+                colorNumber = (colorNumber - 1 + 3) % 3;
+            }
+            cables[colorNumber].material = lineMaterialLuminescence[colorNumber];
+            for (int i = 0; i < cables.Length; i++)
+            {
+                if (i != colorNumber) 
+                {
+                    cables[i].material = lineMaterial[i];
+                }
             }
             colorNumber = Mathf.Clamp(colorNumber, 0, 2);
             originGimmicks[colorNumber].Operation();
@@ -546,6 +556,7 @@ public class GimmickCon : MonoBehaviour
                 }
                 // プレイヤーも操作可能に戻す
                 PlayerController.stop = false;
+                Debug.Log("");
                 OneAction = false;
             }
         }

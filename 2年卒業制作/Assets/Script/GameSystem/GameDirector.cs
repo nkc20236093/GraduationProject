@@ -35,7 +35,12 @@ public class GameDirector : MonoBehaviour
             audioSource.clip = clips[0];
             audioSource.Play();
         }
-        for(int i = 0; i < gimmickClearFlags.Length; i++)
+    }
+    public void GimmickEvent(int number)
+    {
+        Debug.Log("ギミッククリアによるイベント");
+        gimmickClearFlags[number] = true;
+        for (int i = 0; i < gimmickClearFlags.Length; i++)
         {
             if (gimmickClearFlags[i])
             {
@@ -53,11 +58,6 @@ public class GameDirector : MonoBehaviour
                 }
             }
         }
-    }
-    public void GimmickEvent(int number)
-    {
-        Debug.Log("ギミッククリアによるイベント");
-        gimmickClearFlags[number] = true;
     }
     public void GameClear()
     {

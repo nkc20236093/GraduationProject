@@ -164,6 +164,7 @@ public class PlayerController : MonoBehaviour
 
     public class Scissors : Janken
     {
+        bool OneAction = false;
         GimmickCon gimmickCon = null;
         GameObject finger;
         RaycastHit hit;
@@ -178,16 +179,18 @@ public class PlayerController : MonoBehaviour
         }
         public override void HandEffect()
         {
-            if (stop)
+            if (stop && !OneAction) 
             {
+                OneAction = true;
                 gimmickCon.LightHit();
                 modelRender.enabled = false;
                 lineRenderer.enabled = false;
                 return;
             }
             // じゃんけん発動キーが左クリック
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) && !stop) 
             {
+                OneAction = false;
                 lineRenderer.enabled = true;
                 modelRender.enabled = false;
 
@@ -198,13 +201,14 @@ public class PlayerController : MonoBehaviour
                 Ray ray = new Ray(startPos, direction * lazerDistance);
                 lineRenderer.SetPosition(0, startPos);
                 Debug.DrawRay(ray.origin, ray.direction * lazerDistance, Color.red);
-                if (Physics.Raycast(ray, out hit, lazerDistance) && hit.collider.gameObject.CompareTag("LightGimmick")) 
+                if (Physics.Raycast(ray, out hit, lazerDistance) && hit.collider.gameObject.CompareTag("LightGimmick") && !OneAction) 
                 {
                     lineRenderer.SetPosition(1, hit.point);
                     lazerDistance = Vector3.Distance(startPos, hit.point);
                     // ヒットしたら作動
                     gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
                     stop = true;
+                    Debug.Log("0");
                     return;
                 }
                 else
@@ -279,12 +283,14 @@ public class PlayerController : MonoBehaviour
         {
             lineRenderer.enabled = false;
         }
-        if (select != 2)
+        if (select != 2 && !stop)
         {
+            virtualCamera.m_Lens.FieldOfView = 30;
             mTransposer.m_FollowOffset = new Vector3(0, 0.4f, 0);
         }
         else
         {
+            virtualCamera.m_Lens.FieldOfView = 60;
             mTransposer.m_FollowOffset = new Vector3(0, 0.4f, -0.75f);
         }
 
@@ -300,6 +306,7 @@ public class PlayerController : MonoBehaviour
 
     void CameraCon()
     {
+        Debug.Log(stop);
         if (stop)
         {
             myMesh.enabled = true;
@@ -360,7 +367,6 @@ public class PlayerController : MonoBehaviour
         transform.position = enemyMouth.root.position + enemyMouth.root.forward * 1.75f;
         rigid.velocity = Vector3.zero;
         float timer = 0;
-        stop = true;
         dead = true;
         while (!performance)
         {
