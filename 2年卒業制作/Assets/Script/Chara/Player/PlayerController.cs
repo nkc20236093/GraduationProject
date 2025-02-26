@@ -208,7 +208,6 @@ public class PlayerController : MonoBehaviour
                     // ÉqÉbÉgÇµÇΩÇÁçÏìÆ
                     gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
                     stop = true;
-                    Debug.Log("0");
                     return;
                 }
                 else
@@ -283,16 +282,6 @@ public class PlayerController : MonoBehaviour
         {
             lineRenderer.enabled = false;
         }
-        if (select != 2 && !stop)
-        {
-            virtualCamera.m_Lens.FieldOfView = 30;
-            mTransposer.m_FollowOffset = new Vector3(0, 0.4f, 0);
-        }
-        else
-        {
-            virtualCamera.m_Lens.FieldOfView = 60;
-            mTransposer.m_FollowOffset = new Vector3(0, 0.4f, -0.75f);
-        }
 
         if (select != 0)
         {
@@ -306,7 +295,6 @@ public class PlayerController : MonoBehaviour
 
     void CameraCon()
     {
-        Debug.Log(stop);
         if (stop)
         {
             myMesh.enabled = true;
@@ -318,7 +306,8 @@ public class PlayerController : MonoBehaviour
             mPov.m_HorizontalAxis.m_InputAxisValue = 0;
             mPov.m_VerticalAxis.m_InputAxisName = "";
             mPov.m_VerticalAxis.m_InputAxisValue = 0;
-            return;
+            virtualCamera.m_Lens.FieldOfView = 60;
+            mTransposer.m_FollowOffset = new Vector3(0, 0.4f, -0.75f);
         }
         else
         {
@@ -329,27 +318,37 @@ public class PlayerController : MonoBehaviour
             rigid.isKinematic = false;
             mPov.m_HorizontalAxis.m_InputAxisName = "Mouse X";
             mPov.m_VerticalAxis.m_InputAxisName = "Mouse Y";
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.lockState = CursorLockMode.None;
-            transform.eulerAngles = Vector3.zero;
-            mPov.m_VerticalAxis.Value = 0;
-            mPov.m_HorizontalAxis.Value = 0;
-        }
-        else
-        {
-            Vector3 direction = new Vector3(0, transform.eulerAngles.y, 0);
-            direction.y += Input.GetAxis("Mouse X") * 2.0f;
-
-            if (direction.y > 180)
+            if (select == 1)
             {
-                direction.y -= 360;
+                virtualCamera.m_Lens.FieldOfView = 30;
+                mTransposer.m_FollowOffset = new Vector3(0, 0.4f, 0);
             }
-            direction.z = 0;
-            transform.eulerAngles = new Vector3(0, direction.y, 0);
-            mPov.m_HorizontalAxis.Value = direction.y;
+            else
+            {
+                virtualCamera.m_Lens.FieldOfView = 60;
+                mTransposer.m_FollowOffset = new Vector3(0, 0.4f, -0.75f);
+            }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.lockState = CursorLockMode.None;
+                transform.eulerAngles = Vector3.zero;
+                mPov.m_VerticalAxis.Value = 0;
+                mPov.m_HorizontalAxis.Value = 0;
+            }
+            else
+            {
+                Vector3 direction = new Vector3(0, transform.eulerAngles.y, 0);
+                direction.y += Input.GetAxis("Mouse X") * 2.0f;
+
+                if (direction.y > 180)
+                {
+                    direction.y -= 360;
+                }
+                direction.z = 0;
+                transform.eulerAngles = new Vector3(0, direction.y, 0);
+                mPov.m_HorizontalAxis.Value = direction.y;
+            }
         }
     }
 

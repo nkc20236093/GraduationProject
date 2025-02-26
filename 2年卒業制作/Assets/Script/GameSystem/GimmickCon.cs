@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
+using UnityEngine.UI;
 using Color = UnityEngine.Color;
 
 public class GimmickCon : MonoBehaviour
@@ -10,6 +11,8 @@ public class GimmickCon : MonoBehaviour
 
     [Header("見た目用モデル")]
     [SerializeField] MeshRenderer modelMesh;
+    [SerializeField] Sprite[] sprites;
+    [SerializeField] Image myImage;
 
     [Header("自分が何番目の攻略される番号か")] 
     [SerializeField] int myGimmickNumber = 1;
@@ -18,7 +21,6 @@ public class GimmickCon : MonoBehaviour
     [SerializeField] GameObject[] pillers;
     [Header("各色の柱\n赤、緑、紫の順番")]
     [SerializeField] GameObject[] cableObj;
-    [SerializeField] Vector3[] cablePos = new Vector3[3];
     [SerializeField] LineRenderer[] cables;
     [SerializeField] Material[] lineMaterialLuminescence = new Material[3];
     [SerializeField] Material[] lineMaterial = new Material[3];
@@ -33,24 +35,23 @@ public class GimmickCon : MonoBehaviour
     bool lightHit = false;
     bool OneAction = false;
     bool[] gimmickClears = new bool[3] { false, false, false };
+
     public class originGimmick
     {
         //以下は個別に設定
         protected int myNumber;
-        protected Vector3 correctPosCenter;
-        protected Vector3 correctPosUp;
         protected Vector3[] firstPosition;
         protected GameObject[] cables;
         protected LineRenderer colorLineRenderer;
         protected GameObject[] pillers;
         // 以下は最初から共通設定
         protected GimmickCon gimmickCon;
-        protected Vector3[] cablePos = new Vector3[3];
         protected Vector3[] points = new Vector3[2];
         protected string[] colorTag = new string[3] { "Red", "Green", "Cyan" };
         protected Vector3 localHitPoint = Vector3.zero;
         protected Vector3 localEndPos = Vector3.zero;
         protected int counts = default;
+        protected int randomInt = default;
         protected bool first = false;
         protected bool rayHit = false;
         protected RaycastHit hit;
@@ -59,17 +60,42 @@ public class GimmickCon : MonoBehaviour
     }
     public class RedCable: originGimmick
     {
-        public RedCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP, Vector3[] cablepos)
+        readonly Vector3[] correctPosCenter = new Vector3[6]
+        {
+            new Vector3(0, -150, 0),
+            new Vector3(0, -150, 0),
+            new Vector3(0, -150, 0),
+            new Vector3(0, -150, 0),
+            new Vector3(-15, -50, 0),
+            new Vector3(0, 30, 0)
+        };
+        readonly Vector3[] correctPosUp = new Vector3[6]
+        {
+            new Vector3(100, 150, 0),
+            new Vector3(-100, 150, 0),
+            new Vector3(100, 150, 0),
+            new Vector3(-100, 150, 0),
+            new Vector3(-100, 150, 0),
+            new Vector3(20, 150, 0)
+        };
+        private readonly Vector3[] PILLAR_POSITIONS_RED = new Vector3[6]
+        {
+            new Vector3(-70, 70, 0),
+            new Vector3(-70, -10, 0),
+            new Vector3(-70, -10, 0),
+            new Vector3(-45, -60, 0),
+            new Vector3(-15, -50, 0),
+            new Vector3(0, 30, 0)
+        };
+        public RedCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
         {
             myNumber = num;
             colorLineRenderer = lineRenderer;
             this.cables = cables;
             firstPosition = first;
             this.pillers = pillers;
-            correctPosUp = correctUP;
-            correctPosCenter = correctCenter;
             gimmickCon = gimmick;
-            cablePos = cablepos;
+            randomInt = r;
         }
         public override void Operation()
         {
@@ -86,21 +112,19 @@ public class GimmickCon : MonoBehaviour
                 // 起動時に一回だけ実行
                 if (!first)
                 {
-                    for (int i = 0; i < cables.Length; i++)
+                    RectTransform rect = pillers[myNumber].GetComponent<RectTransform>();
+                    rect.anchoredPosition3D = PILLAR_POSITIONS_RED[randomInt];
+                    if (!colorLineRenderer.enabled)
                     {
-                        RectTransform rect = pillers[i].GetComponent<RectTransform>();
-                        rect.anchoredPosition3D = cablePos[i];
-                        if (!colorLineRenderer.enabled)
-                        {
-                            colorLineRenderer.enabled = true;
-                        }
-                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-                        localEndPos = firstPosition[myNumber];
+                        colorLineRenderer.enabled = true;
                     }
+                    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                    localEndPos = firstPosition[myNumber];
                     for (int i = 0; i < points.Length; i++)
                     {
                         points[i] = colorLineRenderer.GetPosition(i);
                     }
+                    Debug.Log(correctPosUp[randomInt] + ":" + correctPosCenter[randomInt]);
                     first = true;
                 }
 
@@ -182,14 +206,14 @@ public class GimmickCon : MonoBehaviour
                 }
                 colorLineRenderer.positionCount = counts;
                 colorLineRenderer.SetPositions(points);
-                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
-                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter[randomInt]);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp[randomInt]);
                 if (centerDistance <= 10 && UpDistance <= 10)
                 {
                     Debug.Log("赤OK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
-                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10) 
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter[randomInt]) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp[randomInt]) > 10) 
                 {
                     Debug.Log("赤NG");
                     gimmickCon.gimmickClears[myNumber] = false;
@@ -201,17 +225,43 @@ public class GimmickCon : MonoBehaviour
 
     public class GreenCable : originGimmick
     {
-        public GreenCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP, Vector3[] cablepos)
+        readonly Vector3[] correctPosCenter = new Vector3[6]
+{
+            new Vector3(100, -150, 0),
+            new Vector3(100, -150, 0),
+            new Vector3(100, -150, 0),
+            new Vector3(100, -150, 0),
+            new Vector3(50, 0, 0),
+            new Vector3(100, -150, 0)
+};
+        readonly Vector3[] correctPosUp = new Vector3[6]
+        {
+            new Vector3(-100, 150, 0),
+            new Vector3(100, 150, 0),
+            new Vector3(0, 150, 0),
+            new Vector3(0, 150, 0),
+            new Vector3(-100, 150, 0),
+            new Vector3(20, 150, 0)
+        };
+        private readonly Vector3[] PILLAR_POSITIONS_GREEN = new Vector3[6]
+        {
+            new Vector3(-100, 50, 0),
+            new Vector3(40, 60, 0),
+            new Vector3(-20, -30, 0),
+            new Vector3(-20, -30, 0),
+            new Vector3(50, 0, 0),
+            new Vector3(10, -70, 0)
+        };
+
+        public GreenCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
         {
             myNumber = num;
             colorLineRenderer = lineRenderer;
             this.cables = cables;
             firstPosition = first;
             this.pillers = pillers;
-            correctPosUp = correctUP;
-            correctPosCenter = correctCenter;
             gimmickCon = gimmick;
-            cablePos = cablepos;
+            randomInt = r;
         }
         public override void Operation()
         {
@@ -228,21 +278,20 @@ public class GimmickCon : MonoBehaviour
                 // 起動時に一回だけ実行
                 if (!first)
                 {
-                    for (int i = 0; i < cables.Length; i++)
+                    RectTransform rect = pillers[myNumber].GetComponent<RectTransform>();
+                    Debug.Log(PILLAR_POSITIONS_GREEN[randomInt] + ":" + randomInt);
+                    rect.anchoredPosition3D = PILLAR_POSITIONS_GREEN[randomInt];
+                    if (!colorLineRenderer.enabled)
                     {
-                        RectTransform rect = pillers[i].GetComponent<RectTransform>();
-                        rect.anchoredPosition3D = cablePos[i];
-                        if (!colorLineRenderer.enabled)
-                        {
-                            colorLineRenderer.enabled = true;
-                        }
-                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-                        localEndPos = firstPosition[myNumber];
+                        colorLineRenderer.enabled = true;
                     }
+                    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                    localEndPos = firstPosition[myNumber];
                     for (int i = 0; i < points.Length; i++)
                     {
                         points[i] = colorLineRenderer.GetPosition(i);
                     }
+                    Debug.Log(correctPosUp[randomInt] + ":" + correctPosCenter[randomInt]);
                     first = true;
                 }
 
@@ -324,14 +373,14 @@ public class GimmickCon : MonoBehaviour
                 }
                 colorLineRenderer.positionCount = counts;
                 colorLineRenderer.SetPositions(points);
-                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
-                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter[randomInt]);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp[randomInt]);
                 if (centerDistance <= 10 && UpDistance <= 10)
                 {
                     Debug.Log("緑OK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
-                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter[randomInt]) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp[randomInt]) > 10)
                 {
                     Debug.Log("緑NG");
                     gimmickCon.gimmickClears[myNumber] = false;
@@ -342,17 +391,43 @@ public class GimmickCon : MonoBehaviour
     }
     public class CyanCable : originGimmick
     {
-        public CyanCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, Vector3 correctCenter, Vector3 correctUP, Vector3[] cablepos)
+        readonly Vector3[] correctPosCenter = new Vector3[6]
+{
+            new Vector3(-100, -150, 0),
+            new Vector3(-100, -150, 0),
+            new Vector3(-100, -150, 0),
+            new Vector3(-100, -150, 0),
+            new Vector3(-45, 30, 0),
+            new Vector3(-45, 30, 0)
+};
+        readonly Vector3[] correctPosUp = new Vector3[6]
+        {
+            new Vector3(0, 150, 0),
+            new Vector3(0, 150, 0),
+            new Vector3(-100, 150, 0),
+            new Vector3(100, 150, 0),
+            new Vector3(100, 150, 0),
+            new Vector3(20, 150, 0)
+        };
+        private readonly Vector3[] PILLAR_POSITIONS_CYAN = new Vector3[6]
+        {
+            new Vector3(80, 30, 0),
+            new Vector3(30, -30, 0),
+            new Vector3(-55, -40, 0),
+            new Vector3(30, -70, 0),
+            new Vector3(-45, 30, 0),
+            new Vector3(-45, 30, 0)
+        };
+
+        public CyanCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
         {
             myNumber = num;
             colorLineRenderer = lineRenderer;
             this.cables = cables;
             firstPosition = first;
             this.pillers = pillers;
-            correctPosUp = correctUP;
-            correctPosCenter = correctCenter;
             gimmickCon = gimmick;
-            cablePos = cablepos;
+            randomInt = r;
         }
         public override void Operation()
         {
@@ -369,21 +444,20 @@ public class GimmickCon : MonoBehaviour
                 // 起動時に一回だけ実行
                 if (!first)
                 {
-                    for (int i = 0; i < cables.Length; i++)
+                    RectTransform rect = pillers[myNumber].GetComponent<RectTransform>();
+                    Debug.Log(PILLAR_POSITIONS_CYAN[randomInt] + ":" + randomInt);
+                    rect.anchoredPosition3D = PILLAR_POSITIONS_CYAN[randomInt];
+                    if (!colorLineRenderer.enabled)
                     {
-                        RectTransform rect = pillers[i].GetComponent<RectTransform>();
-                        rect.anchoredPosition3D = cablePos[i];
-                        if (!colorLineRenderer.enabled)
-                        {
-                            colorLineRenderer.enabled = true;
-                        }
-                        colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
-                        localEndPos = firstPosition[myNumber];
+                        colorLineRenderer.enabled = true;
                     }
+                    colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, firstPosition[myNumber]);
+                    localEndPos = firstPosition[myNumber];
                     for (int i = 0; i < points.Length; i++)
                     {
                         points[i] = colorLineRenderer.GetPosition(i);
                     }
+                    Debug.Log(correctPosUp[randomInt] + ":" + correctPosCenter[randomInt] + ":" + randomInt);
                     first = true;
                 }
 
@@ -399,7 +473,6 @@ public class GimmickCon : MonoBehaviour
                 }
                 value = Mathf.Clamp(value, -100, 100);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-                //Debug.Log(value - localHitPoint.x + ":" + rayHit);
 
                 Vector3 startPos = colorLineRenderer.GetPosition(0);
                 Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
@@ -465,14 +538,14 @@ public class GimmickCon : MonoBehaviour
                 }
                 colorLineRenderer.positionCount = counts;
                 colorLineRenderer.SetPositions(points);
-                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter);
-                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp);
+                float centerDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2), correctPosCenter[randomInt]);
+                float UpDistance = Vector3.Distance(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1), correctPosUp[randomInt]);
                 if (centerDistance <= 10 && UpDistance <= 10)
                 {
                     Debug.Log("紫OK");
                     gimmickCon.gimmickClears[myNumber] = true;
                 }
-                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp) > 10)
+                else if (Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 2) * 100), correctPosCenter[randomInt]) > 10 || Vector3.Distance(colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1) * 100), correctPosUp[randomInt]) > 10)
                 {
                     Debug.Log("紫NG");
                     gimmickCon.gimmickClears[myNumber] = false;
@@ -484,10 +557,12 @@ public class GimmickCon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        int r = Random.Range(0, sprites.Length - 1);
+        myImage.sprite = sprites[r];
         GimmickCon gimmickCon = gameObject.GetComponent<GimmickCon>();
-        originGimmicks[0] = new RedCable(0, gimmickCon, cables[0], cableObj, firstSetPosition, pillers, CorrectCenter[0], CorrectUp[0], cablePos);
-        originGimmicks[1] = new GreenCable(1, gimmickCon, cables[1], cableObj, firstSetPosition, pillers, CorrectCenter[1], CorrectUp[1], cablePos);
-        originGimmicks[2] = new CyanCable(2, gimmickCon, cables[2], cableObj, firstSetPosition, pillers, CorrectCenter[2], CorrectUp[2], cablePos);
+        originGimmicks[0] = new RedCable(0, gimmickCon, cables[0], cableObj, firstSetPosition, pillers, r);
+        originGimmicks[1] = new GreenCable(1, gimmickCon, cables[1], cableObj, firstSetPosition, pillers, r);
+        originGimmicks[2] = new CyanCable(2, gimmickCon, cables[2], cableObj, firstSetPosition, pillers, r);
     }
 
     // Update is called once per frame
@@ -556,7 +631,6 @@ public class GimmickCon : MonoBehaviour
                 }
                 // プレイヤーも操作可能に戻す
                 PlayerController.stop = false;
-                Debug.Log("");
                 OneAction = false;
             }
         }
