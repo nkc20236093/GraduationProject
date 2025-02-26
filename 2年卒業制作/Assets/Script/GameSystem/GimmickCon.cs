@@ -579,6 +579,7 @@ public class GimmickCon : MonoBehaviour
             lightHit = false;
             GameDirector gameDirector = GameObject.Find("GameDirector").GetComponent<GameDirector>();
             gameDirector.GimmickEvent(myGimmickNumber);
+            gameObject.SetActive(false);
         }
         if (lightHit)
         {

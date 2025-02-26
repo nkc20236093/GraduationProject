@@ -14,6 +14,7 @@ public class GameDirector : MonoBehaviour
     [SerializeField] TransitionPostEffect effect;
     [SerializeField] GameObject Exit;
     [SerializeField] GameObject TutorialExit;
+    [SerializeField] GameObject[] GimmickDoors = new GameObject[4];
     bool oneAction = false;
     // Start is called before the first frame update
     void Start()
@@ -50,10 +51,22 @@ public class GameDirector : MonoBehaviour
                         Destroy(TutorialExit);
                         break;
                     case 1:
-                        Exit.tag = "Exit";
+                        Destroy(GimmickDoors[i - 1]);
                         break;
                     case 2:
-
+                        Destroy(GimmickDoors[i - 1]);
+                        break;
+                    case 3:
+                        Destroy(GimmickDoors[i - 1]);
+                        break;
+                    case 4:
+                        Destroy(GimmickDoors[i - 1]);
+                        break;
+                    case 5:
+                        Destroy(GimmickDoors[i - 1]);
+                        break;
+                    case 6:
+                        Exit.tag = "Exit";
                         break;
                 }
             }
