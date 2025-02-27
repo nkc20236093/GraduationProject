@@ -13,6 +13,7 @@ TagManager:
   - Green
   - Cyan
   - Position
+  - NoExit
   layers:
   - Default
   - TransparentFX

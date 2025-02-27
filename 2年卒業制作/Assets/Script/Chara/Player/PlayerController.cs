@@ -399,6 +399,10 @@ public class PlayerController : MonoBehaviour
             // ここでクリアの呼び出し
             gameDirector.GameClear();
         }
+        else if(collision.collider.gameObject.CompareTag("NoExit"))
+        {
+            uIDirector.StartCoroutine(uIDirector.Message(0));
+        }
     }
     /// <summary>
     /// じゃんけんの選択識別

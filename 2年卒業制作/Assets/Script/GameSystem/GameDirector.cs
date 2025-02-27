@@ -5,9 +5,9 @@ using UnityEngine.UI;
 
 public class GameDirector : MonoBehaviour
 {
-    public bool[] gimmickClearFlags = new bool[4];
-    public bool chase = false;
+    public bool[] gimmickClearFlags = new bool[5];
     [SerializeField] AudioSource audioSource;
+    [SerializeField] EnemyCon[] enemyCon;
     [Header("0 = 通常\n1 = 追跡中")]
     [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
@@ -26,20 +26,32 @@ public class GameDirector : MonoBehaviour
     void Update()
     {
         audioSource.volume = GameManager.instance.audiovolumes[1];
-        if (chase && audioSource.clip != clips[1])
+        if (CheckALLTRUE() && audioSource.clip != clips[1])
         {
+            Debug.Log("chase");
             audioSource.clip = clips[1];
             audioSource.Play();
         }
-        else if (audioSource.clip != clips[0]) 
+        else if (audioSource.clip != clips[0])
         {
+            Debug.Log("notChase");
             audioSource.clip = clips[0];
             audioSource.Play();
         }
     }
+    bool CheckALLTRUE()
+    {
+        foreach (EnemyCon enemy in enemyCon)
+        {
+            if (enemy.GetBool())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     public void GimmickEvent(int number)
     {
-        Debug.Log("ギミッククリアによるイベント");
         gimmickClearFlags[number] = true;
         for (int i = 0; i < gimmickClearFlags.Length; i++)
         {
@@ -57,12 +69,6 @@ public class GameDirector : MonoBehaviour
                         Destroy(GimmickDoors[i - 1]);
                         break;
                     case 3:
-                        Destroy(GimmickDoors[i - 1]);
-                        break;
-                    case 4:
-                        Destroy(GimmickDoors[i - 1]);
-                        break;
-                    case 5:
                         Destroy(GimmickDoors[i - 1]);
                         break;
                     case 6:

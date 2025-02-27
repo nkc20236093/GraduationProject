@@ -21,9 +21,10 @@ public class EnemyCon : MonoBehaviour
     NavMeshAgent agent;
     Transform Player;
     GameObject Flask;
+    GameDirector director;
     public class Enemy
     {
-        public Enemy(GameObject mouth)
+        public Enemy(GameObject mouth, GameDirector gameDirector)
         {
             myMouth = mouth;
         }
@@ -55,7 +56,6 @@ public class EnemyCon : MonoBehaviour
         public virtual void Attack()
         {
             if (playerHit) return;
-            Debug.Log("PlayerHit");
             playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3));
         }
@@ -67,7 +67,7 @@ public class EnemyCon : MonoBehaviour
     {
         bool movingUp = true;
         Transform chilltrans;
-        public DoubleHead(NavMeshAgent navi, Transform chillTrans, PlayerController player, Transform mytrans, float speed, GameObject Mouth) : base(Mouth)
+        public DoubleHead(NavMeshAgent navi, Transform chillTrans, PlayerController player, Transform mytrans, float speed, GameObject Mouth, GameDirector gameDirector) : base(Mouth, gameDirector)
         {
             chilltrans = chillTrans;
             agent = navi;
@@ -100,7 +100,6 @@ public class EnemyCon : MonoBehaviour
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
                         {
-                            Debug.Log("î≠å©");
                             searchHit = true;
                         }
                         else
@@ -124,7 +123,6 @@ public class EnemyCon : MonoBehaviour
                 if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f && !searchHit) 
@@ -148,7 +146,6 @@ public class EnemyCon : MonoBehaviour
         public override void Attack()
         {
             if (playerHit) return;
-            Debug.Log("PlayerHit");
             playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3.2f));
         }
@@ -157,10 +154,10 @@ public class EnemyCon : MonoBehaviour
             agent.speed = 0;
             agent.ResetPath();
             if (playerHit || actionStop) return;
+            searchHit = true;
             actionStop = true;
             while (chaseTimer < 5.0f)
             {
-                Debug.Log("í«ê’");
                 agent.speed = walkSpeed;
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
@@ -188,7 +185,7 @@ public class EnemyCon : MonoBehaviour
     {
         float throwTime = 0;
         GameObject flask;
-        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller, float speed, GameObject Mouth) : base(Mouth)
+        public PlagueDoctor(NavMeshAgent navi, GameObject Flask, Transform myTrans, PlayerController controller, float speed, GameObject Mouth, GameDirector gameDirector) : base(Mouth, gameDirector)
         {
             agent = navi;
             flask = Flask;
@@ -221,7 +218,6 @@ public class EnemyCon : MonoBehaviour
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
                         {
-                            Debug.Log("î≠å©");
                             searchHit = true;
                         }
                         else
@@ -245,7 +241,6 @@ public class EnemyCon : MonoBehaviour
                 if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f && !searchHit)
@@ -276,16 +271,15 @@ public class EnemyCon : MonoBehaviour
             agent.ResetPath();
             if (playerHit || actionStop) return;
             actionStop = true;
+            searchHit = true;
             while (chaseTimer < 10.0f)
             {
                 throwTime += Time.deltaTime;
                 agent.speed = walkSpeed;
-                Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 if (throwTime > 2) 
                 {
                     throwTime = 0;
-                    Debug.Log("ìäù±");
                     Vector3 pos = trans.position;
                     pos.y += 0.5f;
                     GameObject instance = Instantiate(flask, pos, Quaternion.identity);
@@ -296,7 +290,6 @@ public class EnemyCon : MonoBehaviour
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 10.0f) 
                 {
-                    Debug.Log("èIóπ");
                     actionStop = false;
                     searchHit = false;
                     throwTime = 0;
@@ -330,7 +323,7 @@ public class EnemyCon : MonoBehaviour
     public class IronBox : Enemy
     {
         private GameObject gameObject;
-        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller, Transform myTrans, float speed, GameObject Mouth) : base(Mouth)
+        public IronBox(NavMeshAgent navi, GameObject game, PlayerController controller, Transform myTrans, float speed, GameObject Mouth, GameDirector gameDirector) : base(Mouth, gameDirector)
         {
             agent = navi;
             gameObject = game;
@@ -363,7 +356,6 @@ public class EnemyCon : MonoBehaviour
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
                         {
-                            Debug.Log("î≠å©");
                             searchHit = true;
                         }
                         else
@@ -387,7 +379,6 @@ public class EnemyCon : MonoBehaviour
                 if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)
@@ -418,6 +409,7 @@ public class EnemyCon : MonoBehaviour
             agent.ResetPath();
             if (playerHit || actionStop) return;
             actionStop = true;
+            searchHit = true;
             while (chaseTimer < 6.0f)
             {
                 if (Mathf.Approximately(chaseTimer % 3.0f, 0))
@@ -428,7 +420,6 @@ public class EnemyCon : MonoBehaviour
                 }
 
                 agent.speed = walkSpeed;
-                Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 6.0f) 
@@ -476,7 +467,7 @@ public class EnemyCon : MonoBehaviour
 
     public class NormalEnemy : Enemy
     {
-        public NormalEnemy(NavMeshAgent navi, PlayerController controller, Transform myTrans, float speed, GameObject Mouth) : base(Mouth)
+        public NormalEnemy(NavMeshAgent navi, PlayerController controller, Transform myTrans, float speed, GameObject Mouth, GameDirector gameDirector) : base(Mouth, gameDirector)
         {
             agent = navi;
             player = controller;
@@ -508,7 +499,6 @@ public class EnemyCon : MonoBehaviour
                         float distanceToPlayer = directionToPlayer.magnitude;
                         if (distanceToPlayer <= 10f)
                         {
-                            Debug.Log("î≠å©");
                             searchHit = true;
                         }
                         else
@@ -532,7 +522,6 @@ public class EnemyCon : MonoBehaviour
                 if (Patrolpoint.Length == 0 || searchHit) return;
                 if (!agent.pathPending && agent.remainingDistance < 0.1f)
                 {
-                    Debug.Log("íTçı");
                     searchHit = false;
                     stopTimer += Time.deltaTime;
                     if (stopTimer < 2.5f)
@@ -563,10 +552,10 @@ public class EnemyCon : MonoBehaviour
             agent.speed = 0;
             if (playerHit || actionStop) return;
             actionStop = true;
+            searchHit = true;
             while (chaseTimer < 5.0f)
             {
                 agent.speed = walkSpeed;
-                Debug.Log("í«ê’");
                 agent.SetDestination(target);
                 chaseTimer += Time.deltaTime;
                 if (chaseTimer >= 5.0f)
@@ -603,6 +592,7 @@ public class EnemyCon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        director = GameObject.Find("GameDirector").GetComponent<GameDirector>();
         PlayerController player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
         agent = GetComponent<NavMeshAgent>();
         agent.speed = WalkSpeed;
@@ -611,10 +601,10 @@ public class EnemyCon : MonoBehaviour
         {
             Flask = transform.GetChild(0).GetChild(0).gameObject;
         }
-        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player, transform, agent.speed, mouth);
-        enemies[1] = new PlagueDoctor(agent, Flask, transform, player, agent.speed, mouth);
-        enemies[2] = new IronBox(agent, gameObject, player, transform, agent.speed, mouth);
-        enemies[3] = new NormalEnemy(agent, player, transform, agent.speed, mouth);
+        enemies[0] = new DoubleHead(agent, transform.GetChild(0), player, transform, agent.speed, mouth, director);
+        enemies[1] = new PlagueDoctor(agent, Flask, transform, player, agent.speed, mouth, director);
+        enemies[2] = new IronBox(agent, gameObject, player, transform, agent.speed, mouth, director);
+        enemies[3] = new NormalEnemy(agent, player, transform, agent.speed, mouth, director);
         enemies[EnemyNumber].SetPoint(point);
         Player = GameObject.FindGameObjectWithTag("Player").transform;
     }
@@ -653,5 +643,9 @@ public class EnemyCon : MonoBehaviour
         {
             enemies[EnemyNumber].Chase(pos);
         }
+    }
+    public bool GetBool()
+    {
+        return enemies[EnemyNumber].GetBool();
     }
 }

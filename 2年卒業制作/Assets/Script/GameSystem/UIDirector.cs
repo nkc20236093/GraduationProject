@@ -59,4 +59,34 @@ public class UIDirector : MonoBehaviour
             }
         }
     }
+    public IEnumerator Message(int num)
+    {
+        if(corStop) yield break;
+        corStop = true;
+        switch (num)
+        {
+            case 6:
+                gameText.enabled = true;
+                gameText.text = "鍵がかかってる";
+                yield return new WaitForSeconds(1.5f);
+                gameText.text = "";
+                gameText.enabled = false;
+                break;
+            case 1:
+                gameText.enabled = true;
+                gameText.text = "どこかのドアが開いた";
+                yield return new WaitForSeconds(1.5f);
+                gameText.text = "";
+                gameText.enabled = false;
+                break;
+            case 2:
+                gameText.enabled = true;
+                gameText.text = "線を指定の形にしましょう\nマウスホイールで線を選択\n左クリック・右クリックで移動";
+                yield return new WaitUntil(() => !PlayerController.stop);
+                gameText.text = "";
+                gameText.enabled = false;
+                break;
+        }
+        yield break;
+    }
 }
