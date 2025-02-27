@@ -52,7 +52,7 @@ public class EnemyCon : MonoBehaviour
             }
         }
         public virtual void Search(Vector3 targetpos, AudioSource audioSource) { }
-        public virtual void Chase(Vector3 target) { }
+        public virtual IEnumerator Chase(Vector3 target) { yield break; }
         public virtual void Attack()
         {
             if (playerHit) return;
@@ -149,11 +149,11 @@ public class EnemyCon : MonoBehaviour
             playerHit = true;
             player.StartCoroutine(player.EnemyDeath(myMouth.transform, 3.2f));
         }
-        public override void Chase(Vector3 target)
+        public override IEnumerator Chase(Vector3 target)
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (playerHit || actionStop) return;
+            if (playerHit || actionStop) yield break;
             searchHit = true;
             actionStop = true;
             while (chaseTimer < 5.0f)
@@ -164,9 +164,12 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 5.0f)
                 {
                     chaseTimer = 0;
+                    searchHit = false;
                     actionStop = false;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
                     break;
                 }
+                yield return null;
             }
         }
         public override void Animation(Animator animator)
@@ -265,11 +268,11 @@ public class EnemyCon : MonoBehaviour
         {
             base.Attack();
         }
-        public override void Chase(Vector3 target)
+        public override IEnumerator Chase(Vector3 target)
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (playerHit || actionStop) return;
+            if (searchHit || actionStop) yield break;
             actionStop = true;
             searchHit = true;
             while (chaseTimer < 10.0f)
@@ -294,8 +297,10 @@ public class EnemyCon : MonoBehaviour
                     searchHit = false;
                     throwTime = 0;
                     chaseTimer = 0;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
                     break;
                 }
+                yield return null;
             }
         }
         public override void Animation(Animator animator)
@@ -403,11 +408,11 @@ public class EnemyCon : MonoBehaviour
         {
             base.Attack();
         }
-        public override void Chase(Vector3 target)
+        public override IEnumerator Chase(Vector3 target)
         {
             agent.speed = 0;
             agent.ResetPath();
-            if (playerHit || actionStop) return;
+            if (searchHit || actionStop) yield break;
             actionStop = true;
             searchHit = true;
             while (chaseTimer < 6.0f)
@@ -425,9 +430,12 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 6.0f) 
                 {
                     chaseTimer = 0;
+                    searchHit = false;
                     actionStop = false;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
                     break;
                 }
+                yield return null;
             }
             void CallEnemy()
             {
@@ -546,11 +554,12 @@ public class EnemyCon : MonoBehaviour
         {
             base.Attack();
         }
-        public override void Chase(Vector3 target)
+        public override IEnumerator Chase(Vector3 target)
         {
             agent.ResetPath();
             agent.speed = 0;
-            if (playerHit || actionStop) return;
+            if (searchHit || actionStop) yield break;
+            chaseTimer = 0;
             actionStop = true;
             searchHit = true;
             while (chaseTimer < 5.0f)
@@ -561,9 +570,12 @@ public class EnemyCon : MonoBehaviour
                 if (chaseTimer >= 5.0f)
                 {
                     actionStop = false;
+                    searchHit = false;
                     chaseTimer = 0;
+                    agent.SetDestination(Patrolpoint[NowPoint]);
                     break;
                 }
+                yield return null;
             }
         }
         public override void Animation(Animator animator)
@@ -615,7 +627,7 @@ public class EnemyCon : MonoBehaviour
         myAudio.volume = GameManager.instance.audiovolumes[0];
         if (enemies[EnemyNumber].GetBool())
         {
-            enemies[EnemyNumber].Chase(Player.position);
+            StartCoroutine(enemies[EnemyNumber].Chase(Player.position));
         }
         else
         {
@@ -641,7 +653,7 @@ public class EnemyCon : MonoBehaviour
     {
         if (distance < outline)
         {
-            enemies[EnemyNumber].Chase(pos);
+            StartCoroutine(enemies[EnemyNumber].Chase(Player.position));
         }
     }
     public bool GetBool()

@@ -32,7 +32,7 @@ public class GameDirector : MonoBehaviour
             audioSource.clip = clips[1];
             audioSource.Play();
         }
-        else if (audioSource.clip != clips[0])
+        else if (!CheckALLTRUE() && audioSource.clip != clips[0])
         {
             Debug.Log("notChase");
             audioSource.clip = clips[0];

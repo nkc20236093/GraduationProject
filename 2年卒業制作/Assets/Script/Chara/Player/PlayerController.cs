@@ -77,7 +77,7 @@ public class PlayerController : MonoBehaviour
                         animator.SetBool("Paper", true);
                         animator.SetBool("Idle", false);
                     }
-                    else
+                    else if(!Input.GetButton("Horizontal") && !Input.GetButton("Vertical"))
                     {
                         animator.SetBool("Idle", true);
                         animator.SetBool("Paper", false);
