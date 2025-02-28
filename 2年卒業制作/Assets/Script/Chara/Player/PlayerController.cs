@@ -181,19 +181,10 @@ public class PlayerController : MonoBehaviour
         {
             if (stop && !OneAction) 
             {
-                //gimmickCon.LightHit();
-
+                gimmickCon.LightHit();
+                OneAction = true;
                 modelRender.enabled = false;
                 lineRenderer.enabled = false;
-                timer += Time.deltaTime;
-                Debug.Log(timer);
-                if (timer >= 5)
-                {
-                    stop = false;
-                    UIDirector uIDirector = GameObject.Find("UIDirector").GetComponent<UIDirector>();
-                    uIDirector.StartCoroutine(uIDirector.Message(2));
-                    return;
-                }
                 return;
             }
             // じゃんけん発動キーが左クリック
@@ -215,7 +206,7 @@ public class PlayerController : MonoBehaviour
                     lineRenderer.SetPosition(1, hit.point);
                     lazerDistance = Vector3.Distance(startPos, hit.point);
                     // ヒットしたら作動
-                    //gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
+                    gimmickCon = hit.collider.gameObject.GetComponent<GimmickCon>();
                     stop = true;
                     return;
                 }

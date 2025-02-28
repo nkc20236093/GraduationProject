@@ -76,7 +76,7 @@ public class GimmickCon : MonoBehaviour
             new Vector3(300, 350, 0),
             new Vector3(-300, 350, 0),
             new Vector3(-300, 350, 0),
-            new Vector3(20, 350, 0)
+            new Vector3(250, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_RED = new Vector3[6]
         {
@@ -127,26 +127,26 @@ public class GimmickCon : MonoBehaviour
                     first = true;
                 }
 
+                Vector3 startPos = colorLineRenderer.GetPosition(0);
+                Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
+                localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
+                Vector3 direction = localEndPos - localStartPos;
+                ray = new Ray(localStartPos, direction);
+                Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+
                 float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
                 // マウスの左右のクリックで動かす
                 if (Input.GetMouseButton(1))
                 {
-                    value++;
+                    value += 5;
                 }
                 else if (Input.GetMouseButton(0))
                 {
-                    value--;
+                    value -= 5;
                 }
                 value = Mathf.Clamp(value, -300, 300);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-                //Debug.Log(value - localHitPoint.x + ":" + rayHit);
 
-                Vector3 startPos = colorLineRenderer.GetPosition(0);
-                Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
-                localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
-                Vector3 direction = (localEndPos - localStartPos).normalized;
-                ray = new Ray(localStartPos, direction);
-                Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
                 // Rayがヒットした座標をローカル座標に変換して追加
                 if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
                 {
@@ -240,13 +240,13 @@ public class GimmickCon : MonoBehaviour
             new Vector3(0, 350, 0),
             new Vector3(0, 350, 0),
             new Vector3(-300, 350, 0),
-            new Vector3(20, 350, 0)
+            new Vector3(250, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_GREEN = new Vector3[6]
         {
             new Vector3(-125, 75, 0),
             new Vector3(-125,200,0),
-            new Vector3(125,200,0),
+            new Vector3(5,200,0),
             new Vector3(-145,180,0),
             new Vector3(200, 150, 0),
             new Vector3(-140, -90, 0)
@@ -294,26 +294,26 @@ public class GimmickCon : MonoBehaviour
                     first = true;
                 }
 
-                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-                // マウスの左右のクリックで動かす
-                if (Input.GetMouseButton(1))
-                {
-                    value++;
-                }
-                else if (Input.GetMouseButton(0))
-                {
-                    value--;
-                }
-                value = Mathf.Clamp(value, -300, 300);
-                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-                //Debug.Log(value - localHitPoint.x + ":" + rayHit);
-
                 Vector3 startPos = colorLineRenderer.GetPosition(0);
                 Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
                 localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
                 Vector3 direction = (localEndPos - localStartPos).normalized;
                 ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+
+                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
+                {
+                    value += 5;
+                }
+                else if (Input.GetMouseButton(0))
+                {
+                    value -= 5;
+                }
+                value = Mathf.Clamp(value, -300, 300);
+                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
+
                 // Rayがヒットした座標をローカル座標に変換して追加
                 if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
                 {
@@ -405,8 +405,8 @@ public class GimmickCon : MonoBehaviour
             new Vector3(0, 350, 0),
             new Vector3(-300, 350, 0),
             new Vector3(300, 350, 0),
-            new Vector3(300, 350, 0),
-            new Vector3(20, 350, 0)
+            new Vector3(30, 350, 0),
+            new Vector3(250, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_CYAN = new Vector3[6]
         {
@@ -460,25 +460,26 @@ public class GimmickCon : MonoBehaviour
                     first = true;
                 }
 
-                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
-                // マウスの左右のクリックで動かす
-                if (Input.GetMouseButton(1))
-                {
-                    value++;
-                }
-                else if (Input.GetMouseButton(0))
-                {
-                    value--;
-                }
-                value = Mathf.Clamp(value, -300, 300);
-                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
-
                 Vector3 startPos = colorLineRenderer.GetPosition(0);
                 Vector3 localStartPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(0));
                 localEndPos = colorLineRenderer.transform.TransformPoint(colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1));
                 Vector3 direction = (localEndPos - localStartPos).normalized;
                 ray = new Ray(localStartPos, direction);
                 Debug.DrawRay(ray.origin, ray.direction * 1000000, Color.blue);
+
+                float value = colorLineRenderer.GetPosition(colorLineRenderer.positionCount - 1).x;
+                // マウスの左右のクリックで動かす
+                if (Input.GetMouseButton(1))
+                {
+                    value += 5;
+                }
+                else if (Input.GetMouseButton(0))
+                {
+                    value -= 5;
+                }
+                value = Mathf.Clamp(value, -300, 300);
+                colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
+
                 // Rayがヒットした座標をローカル座標に変換して追加
                 if (Physics.Raycast(ray, out hit, LayerMask.GetMask("Pillar")) && hit.collider.gameObject.CompareTag(colorTag[myNumber]) || rayHit)
                 {
