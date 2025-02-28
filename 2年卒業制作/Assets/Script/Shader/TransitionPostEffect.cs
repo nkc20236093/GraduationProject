@@ -16,10 +16,11 @@ public class TransitionPostEffect : MonoBehaviour
     /// <summary>
     /// 死亡、クリア時の画面遷移
     /// </summary>
-    public IEnumerator Transition(int num)
+    public IEnumerator Transition(int num, string sceneName, string text)
     {
         image.sprite = colorImage[num];
         image.enabled = true;
+        resultText.text = text;
         float t = 0f;
         while (t < transitionTime)
         {
@@ -32,37 +33,12 @@ public class TransitionPostEffect : MonoBehaviour
             t += Time.deltaTime;
         }
         float a_color = 0;
-        while (a_color < 1)
+        while (resultText.color.a < 1)
         {
             resultText.color = new Color(resultText.color.r, resultText.color.b, resultText.color.g, a_color);
             a_color += Time.deltaTime / 5;
-        }
-
-        postEffectMaterial.SetFloat(_progressId, 1f);
-    }
-    // ゲーム開始、ゲーム終了の画面遷移
-    public IEnumerator StartTransition(int num, string sceneName)
-    {
-        image.sprite = colorImage[num];
-        image.enabled = true;
-        float t = 0f;
-        while (t < transitionTime)
-        {
-            float progress = t / transitionTime;
-
-            // シェーダーの_Progressに値を設定
-            postEffectMaterial.SetFloat(_progressId, progress);
             yield return null;
-
-            t += Time.deltaTime;
         }
-        float a_color = 0;
-        while (a_color < 1)
-        {
-            resultText.color = new Color(resultText.color.r, resultText.color.b, resultText.color.g, a_color);
-            a_color += Time.deltaTime / 5;
-        }
-
         postEffectMaterial.SetFloat(_progressId, 1f);
         SceneManager.LoadScene(sceneName);
     }

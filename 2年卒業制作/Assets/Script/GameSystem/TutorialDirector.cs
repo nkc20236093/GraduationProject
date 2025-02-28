@@ -103,6 +103,7 @@ public class TutorialDirector : MonoBehaviour
         tutorialOrigins[2] = new jankenTutorialScissors(2, uIDirector, this, playerController);
         tutorialOrigins[3] = new LightTutorial(3, uIDirector, this, gameDirector);
         StartCoroutine(TutorialCor(0));
+        uIDirector.StartCoroutine(uIDirector.Tutorial(false));
     }
 
     // Update is called once per frame

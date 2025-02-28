@@ -12,14 +12,14 @@ public class GameDirector : MonoBehaviour
     [SerializeField] AudioClip[] clips;
     [SerializeField] UIDirector uIDirector;
     [SerializeField] TransitionPostEffect effect;
-    [SerializeField] GameObject Exit;
+    [SerializeField] GameObject[] Exit;
     [SerializeField] GameObject TutorialExit;
     [SerializeField] GameObject[] GimmickDoors = new GameObject[4];
     bool oneAction = false;
     // Start is called before the first frame update
     void Start()
     {
-
+        Cursor.visible = false;
     }
 
     // Update is called once per frame
@@ -72,7 +72,8 @@ public class GameDirector : MonoBehaviour
                         Destroy(GimmickDoors[i - 1]);
                         break;
                     case 6:
-                        Exit.tag = "Exit";
+                        Exit[0].tag = "Exit";
+                        Exit[1].tag = "Exit";
                         break;
                 }
             }
@@ -83,13 +84,14 @@ public class GameDirector : MonoBehaviour
         if (oneAction) return;
         oneAction = true;
         Debug.Log("ゲームクリア");
-        effect.StartCoroutine(effect.Transition(0));
+        PlayerController.stop = true;
+        effect.StartCoroutine(effect.Transition(0, "TitleScene", "Game Clear"));
     }
     public void GameOver()
     {
         if (oneAction) return;
         oneAction = true;
         Debug.Log("ゲームオーバー");
-        effect.StartCoroutine(effect.Transition(1));
+        effect.StartCoroutine(effect.Transition(1, "TitleScene", "Game Over"));
     }
 }

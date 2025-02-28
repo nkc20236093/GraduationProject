@@ -11,10 +11,12 @@ public class TitleDirector : MonoBehaviour
     [SerializeField] Slider[] volumeSlider = new Slider[2];
     [SerializeField] GameObject settingExit;
     [SerializeField] GameObject gameEndUI;
+    bool oneAction = false;
     // Start is called before the first frame update
     void Start()
     {
-
+        oneAction = false;
+        Cursor.visible = true;
     }
 
     // Update is called once per frame
@@ -47,8 +49,11 @@ public class TitleDirector : MonoBehaviour
     }
     public void GameChange()
     {
-        gameEndUI.SetActive(true);
-        effect.StartTransition(0, "SampleScene");
+        if (!oneAction)
+        {
+            gameEndUI.SetActive(true);
+            effect.StartCoroutine(effect.Transition(1, "GameScene", ""));
+        }
     }
     public void VolumeCheck()
     {

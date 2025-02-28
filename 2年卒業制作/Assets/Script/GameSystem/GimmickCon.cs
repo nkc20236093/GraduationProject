@@ -66,26 +66,26 @@ public class GimmickCon : MonoBehaviour
             new Vector3(0, -150, 0),
             new Vector3(0, -150, 0),
             new Vector3(0, -150, 0),
-            new Vector3(-15, -50, 0),
-            new Vector3(0, 30, 0)
+            new Vector3(-60, 100, 0),
+            new Vector3(60, 175, 0)
         };
         readonly Vector3[] correctPosUp = new Vector3[6]
         {
-            new Vector3(100, 150, 0),
-            new Vector3(-100, 150, 0),
-            new Vector3(100, 150, 0),
-            new Vector3(-100, 150, 0),
-            new Vector3(-100, 150, 0),
-            new Vector3(20, 150, 0)
+            new Vector3(300, 350, 0),
+            new Vector3(-300, 350, 0),
+            new Vector3(300, 350, 0),
+            new Vector3(-300, 350, 0),
+            new Vector3(-300, 350, 0),
+            new Vector3(20, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_RED = new Vector3[6]
         {
-            new Vector3(-70, 70, 0),
-            new Vector3(-70, -10, 0),
-            new Vector3(-70, -10, 0),
-            new Vector3(-45, -60, 0),
-            new Vector3(-15, -50, 0),
-            new Vector3(0, 30, 0)
+            new Vector3(-75, 175, 0),
+            new Vector3(190, 200, 0),
+            new Vector3(-190, 200, 0),
+            new Vector3(-190, 0, 0),
+            new Vector3(-60, 100, 0),
+            new Vector3(60, 175, 0)
         };
         public RedCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
         {
@@ -124,7 +124,6 @@ public class GimmickCon : MonoBehaviour
                     {
                         points[i] = colorLineRenderer.GetPosition(i);
                     }
-                    Debug.Log(correctPosUp[randomInt] + ":" + correctPosCenter[randomInt]);
                     first = true;
                 }
 
@@ -138,7 +137,7 @@ public class GimmickCon : MonoBehaviour
                 {
                     value--;
                 }
-                value = Mathf.Clamp(value, -100, 100);
+                value = Mathf.Clamp(value, -300, 300);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
                 //Debug.Log(value - localHitPoint.x + ":" + rayHit);
 
@@ -165,7 +164,7 @@ public class GimmickCon : MonoBehaviour
                         localHitPoint = new Vector3(pos.x, pos.y, 0);
                     }
                     points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                    points[2] = new Vector3(value, 150, 0);
+                    points[2] = new Vector3(value, 350, 0);
                     counts = 3;
                     // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
                     // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
@@ -195,12 +194,12 @@ public class GimmickCon : MonoBehaviour
                         points = new Vector3[colorLineRenderer.positionCount + 1];
                         points[0] = startPos;
                         points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                        points[2] = new Vector3(value, 150, 0);
+                        points[2] = new Vector3(value, 350, 0);
                         counts = 3;
                     }
                     else
                     {
-                        points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                        points = new Vector3[2] { startPos, new Vector3(value, 350, 0) };
                         counts = 2;
                     }
                 }
@@ -227,30 +226,30 @@ public class GimmickCon : MonoBehaviour
     {
         readonly Vector3[] correctPosCenter = new Vector3[6]
 {
-            new Vector3(100, -150, 0),
-            new Vector3(100, -150, 0),
-            new Vector3(100, -150, 0),
-            new Vector3(100, -150, 0),
-            new Vector3(50, 0, 0),
-            new Vector3(100, -150, 0)
+            new Vector3(300, -150, 0),
+            new Vector3(300, -150, 0),
+            new Vector3(300, -150, 0),
+            new Vector3(300, -150, 0),
+            new Vector3(200, 150, 0),
+            new Vector3(300, -150, 0)
 };
         readonly Vector3[] correctPosUp = new Vector3[6]
         {
-            new Vector3(-100, 150, 0),
-            new Vector3(100, 150, 0),
-            new Vector3(0, 150, 0),
-            new Vector3(0, 150, 0),
-            new Vector3(-100, 150, 0),
-            new Vector3(20, 150, 0)
+            new Vector3(-300, 350, 0),
+            new Vector3(300, 350, 0),
+            new Vector3(0, 350, 0),
+            new Vector3(0, 350, 0),
+            new Vector3(-300, 350, 0),
+            new Vector3(20, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_GREEN = new Vector3[6]
         {
-            new Vector3(-100, 50, 0),
-            new Vector3(40, 60, 0),
-            new Vector3(-20, -30, 0),
-            new Vector3(-20, -30, 0),
-            new Vector3(50, 0, 0),
-            new Vector3(10, -70, 0)
+            new Vector3(-125, 75, 0),
+            new Vector3(-125,200,0),
+            new Vector3(125,200,0),
+            new Vector3(-145,180,0),
+            new Vector3(200, 150, 0),
+            new Vector3(-140, -90, 0)
         };
 
         public GreenCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
@@ -305,7 +304,7 @@ public class GimmickCon : MonoBehaviour
                 {
                     value--;
                 }
-                value = Mathf.Clamp(value, -100, 100);
+                value = Mathf.Clamp(value, -300, 300);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
                 //Debug.Log(value - localHitPoint.x + ":" + rayHit);
 
@@ -332,7 +331,7 @@ public class GimmickCon : MonoBehaviour
                         localHitPoint = new Vector3(pos.x, pos.y, 0);
                     }
                     points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                    points[2] = new Vector3(value, 150, 0);
+                    points[2] = new Vector3(value, 350, 0);
                     counts = 3;
                     // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
                     // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
@@ -362,12 +361,12 @@ public class GimmickCon : MonoBehaviour
                         points = new Vector3[colorLineRenderer.positionCount + 1];
                         points[0] = startPos;
                         points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                        points[2] = new Vector3(value, 150, 0);
+                        points[2] = new Vector3(value, 350, 0);
                         counts = 3;
                     }
                     else
                     {
-                        points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                        points = new Vector3[2] { startPos, new Vector3(value, 350, 0) };
                         counts = 2;
                     }
                 }
@@ -393,30 +392,30 @@ public class GimmickCon : MonoBehaviour
     {
         readonly Vector3[] correctPosCenter = new Vector3[6]
 {
-            new Vector3(-100, -150, 0),
-            new Vector3(-100, -150, 0),
-            new Vector3(-100, -150, 0),
-            new Vector3(-100, -150, 0),
-            new Vector3(-45, 30, 0),
-            new Vector3(-45, 30, 0)
+            new Vector3(-300, -150, 0),
+            new Vector3(-300, -150, 0),
+            new Vector3(-300, -150, 0),
+            new Vector3(-300, -150, 0),
+            new Vector3(-175, 200, 0),
+            new Vector3(-180, 150, 0)
 };
         readonly Vector3[] correctPosUp = new Vector3[6]
         {
-            new Vector3(0, 150, 0),
-            new Vector3(0, 150, 0),
-            new Vector3(-100, 150, 0),
-            new Vector3(100, 150, 0),
-            new Vector3(100, 150, 0),
-            new Vector3(20, 150, 0)
+            new Vector3(0, 350, 0),
+            new Vector3(0, 350, 0),
+            new Vector3(-300, 350, 0),
+            new Vector3(300, 350, 0),
+            new Vector3(300, 350, 0),
+            new Vector3(20, 350, 0)
         };
         private readonly Vector3[] PILLAR_POSITIONS_CYAN = new Vector3[6]
         {
-            new Vector3(80, 30, 0),
-            new Vector3(30, -30, 0),
-            new Vector3(-55, -40, 0),
-            new Vector3(30, -70, 0),
-            new Vector3(-45, 30, 0),
-            new Vector3(-45, 30, 0)
+            new Vector3(90, 200, 0),
+            new Vector3(90, 270, 0),
+            new Vector3(-90, 270, 0),
+            new Vector3(260, -40, 0),
+            new Vector3(-175, 200, 0),
+            new Vector3(-180, 150, 0)
         };
 
         public CyanCable(int num, GimmickCon gimmick, LineRenderer lineRenderer, GameObject[] cables, Vector3[] first, GameObject[] pillers, int r)
@@ -471,7 +470,7 @@ public class GimmickCon : MonoBehaviour
                 {
                     value--;
                 }
-                value = Mathf.Clamp(value, -100, 100);
+                value = Mathf.Clamp(value, -300, 300);
                 colorLineRenderer.SetPosition(colorLineRenderer.positionCount - 1, new Vector3(value, 150, 0));
 
                 Vector3 startPos = colorLineRenderer.GetPosition(0);
@@ -497,7 +496,7 @@ public class GimmickCon : MonoBehaviour
                         localHitPoint = new Vector3(pos.x, pos.y, 0);
                     }
                     points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                    points[2] = new Vector3(value, 150, 0);
+                    points[2] = new Vector3(value, 350, 0);
                     counts = 3;
                     // localHitPoint(中点)のx座標がcolorLineRenderer.GetPosition(0).x(一番下)より大きい(右にある)時は
                     // localHitPoint.x(中点)-value(一番上)の差が15㎝以下だったらfalse
@@ -527,12 +526,12 @@ public class GimmickCon : MonoBehaviour
                         points = new Vector3[colorLineRenderer.positionCount + 1];
                         points[0] = startPos;
                         points[1] = new Vector3(localHitPoint.x, localHitPoint.y, 0);
-                        points[2] = new Vector3(value, 150, 0);
+                        points[2] = new Vector3(value, 350, 0);
                         counts = 3;
                     }
                     else
                     {
-                        points = new Vector3[2] { startPos, new Vector3(value, 150, 0) };
+                        points = new Vector3[2] { startPos, new Vector3(value, 350, 0) };
                         counts = 2;
                     }
                 }

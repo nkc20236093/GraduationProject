@@ -19,7 +19,6 @@ public class UIDirector : MonoBehaviour
     void Start()
     {
         DamageImg.color = Color.clear;
-        StartCoroutine(Tutorial(corStop));
     }
 
 
@@ -39,9 +38,8 @@ public class UIDirector : MonoBehaviour
     {
         DamageImg.color = damageColors[num - 1];
     }
-    IEnumerator Tutorial(bool stop)
+    public IEnumerator Tutorial(bool stop)
     {
-        gameText.enabled = true;
         while (!stop)
         {
             for (int i = 0; i < tutorialDirector.tutorialFlags.Length; i++)
@@ -63,30 +61,28 @@ public class UIDirector : MonoBehaviour
     {
         if(corStop) yield break;
         corStop = true;
+        var wait = new WaitForSeconds(3.5f);
+        var wait2 = new WaitForSeconds(5.0f);
         switch (num)
         {
-            case 6:
-                gameText.enabled = true;
-                gameText.text = "鍵がかかってる";
-                yield return new WaitForSeconds(1.5f);
-                gameText.text = "";
-                gameText.enabled = false;
+            case 0:
+                gameText.text = "電気が通ってない";
+                yield return wait;
                 break;
             case 1:
-                gameText.enabled = true;
                 gameText.text = "どこかのドアが開いた";
-                yield return new WaitForSeconds(1.5f);
-                gameText.text = "";
-                gameText.enabled = false;
+                yield return wait;
                 break;
             case 2:
-                gameText.enabled = true;
-                gameText.text = "線を指定の形にしましょう\nマウスホイールで線を選択\n左クリック・右クリックで移動";
-                yield return new WaitUntil(() => !PlayerController.stop);
-                gameText.text = "";
-                gameText.enabled = false;
+                gameText.text = "通電中";
+                yield return wait2;
                 break;
+                //case 2:
+                //    gameText.text = "線を指定の形にしましょう\nマウスホイールで線を選択\n左クリック・右クリックで移動";
+                //    yield return waitInput;
+                //    break;
         }
+        gameText.text = "";
         yield break;
     }
 }
